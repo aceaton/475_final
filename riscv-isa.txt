@@ -1,0 +1,911 @@
+==========================================================================
+RISCV Instruction Set Architecture
+==========================================================================
+# Author    : Ang Li
+# Date      : Feburary 19, 2018
+# Modified from Chirstopher Batten's TinyRV description and Ji Kim's PARC
+# description.
+
+This document provides a compact description of a subset of the RV32IM ISA,
+which is suitable for running simple C programs. The full RISC-V ISA manual
+is available from the following link:
+
+ - https://riscv.org/specifications/
+
+The full RISC-V ISA manuals include a wealth of useful information about why
+the architecture designers made specific design decisions. Feel free to refer
+to these manuals, but there are minor differences between the ISA described
+in this document and the full RISC-V ISA.
+
+ Table of Contents
+  1. Architectural State
+  2. RISC-V Instruction Overview
+  3. RISC-V Instruction Encoding
+     3.1. Instruction Formats
+     3.2. Immediate Formats
+  4. RISC-V Instruction Details
+     4.1. Control/Status Register Instructions
+     4.2. Register-Register Arithmetic Instructions
+     4.3. Register-Immediate Arithmetic Instructions
+     4.4. Memory Instructions
+     4.5. Unconditional Jump Instructions
+     4.6. Conditional Branch Instructions
+  5. RISC-V Privileged ISA
+  6. RISC-V Pseudo-Instructions
+
+--------------------------------------------------------------------------
+1. Architectural State
+--------------------------------------------------------------------------
+
+* Data Formats
+
+ - Our implementation only supports byte, half-word (2 bytes) and word (4 bytes)
+   signed and unsigned integer values. Floating-point values are not supported.
+
+* General Purpose Registers
+
+ - There are 31 general-purpose registers x1-x31 (called x registers),
+   which hold integer values. Register x0 is hardwired to the constant
+   zero. Each register is 32 bits wide. The calling convention and symbolic
+   register names are listed as below:
+
+    + x0  : zero   the constant value 0
+    + x1  : ra     return address (caller saved)
+    + x2  : sp     stack pointer (callee saved)
+    + x3  : gp     global pointer
+    + x4  : tp     thread pointer
+    + x5  : t0     temporary registers (caller saved)
+    + x6  : t1     "
+    + x7  : t2     "
+    + x8  : s0/fp  saved register or frame pointer (callee saved)
+    + x9  : s1     saved register (callee saved)
+    + x10 : a0     function arguments and/or return values (caller saved)
+    + x11 : a1     "
+    + x12 : a2     function arguments (caller saved)
+    + x13 : a3     "
+    + x14 : a4     "
+    + x15 : a5     "
+    + x16 : a6     "
+    + x17 : a7     "
+    + x18 : s2     saved registers (callee saved)
+    + x19 : s3     "
+    + x20 : s4     "
+    + x21 : s5     "
+    + x22 : s6     "
+    + x23 : s7     "
+    + x24 : s8     "
+    + x25 : s9     "
+    + x26 : s10    "
+    + x27 : s11    "
+    + x28 : t3     temporary registers (caller saved)
+    + x29 : t4     "
+    + x30 : t5     "
+    + x31 : t6     "
+
+ * Endianness
+
+ - A key feature of any ISA is identifying the endianness of the memory
+   system. Endianness specifies if we load a word in memory, what order
+   should those bytes appear in the destination register. Assume the
+   letter A ia at byte address 0x0, the letter B is at byte address 0x1,
+   the letter C is at byte address 0x2, and the letter D is at byte
+   address 0x3. If we load a four-byte word from address 0x0, there are
+   two options: the destination register can either hold 0xABCD (big
+   endian) or 0xDCBA (little endian). There is no significant benefit of
+   one system over the other. RISC-V uses a little endian memory system.
+
+--------------------------------------------------------------------------
+2. RISC-V ISA Overview
+--------------------------------------------------------------------------
+
+Here is a brief list of the instructions included in our subset of the
+RISC-V ISA.
+
+ - LUI, AUIPC
+ - JAL, JALR
+ - BEQ, BNE, BLT, BGE, BLTU, BGEU
+ - LB, LH, LW, LBU, LHU, SB, SH, SW
+ - ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI
+ - ADD, SUB, SLL, SLT, SLTU, SRL, SRA, AND, OR, XOR
+ - CSRW
+ - MUL, DIV, DIVU, REM, REMU
+
+* Discussion
+
+CSRW is in fact a pseudo-instruction in the full RV32IM ISA for specific
+usage of the CSRRW instruction. The full CSRRW is rather complicated and
+we don't actually need any functionality beyond what CSRW provides.
+
+--------------------------------------------------------------------------
+3. RISC-V Instruction and Immediate Encoding
+--------------------------------------------------------------------------
+
+There are four instruction types and five immediate encodings in RISC-V ISA.
+Each instruction has a specific instruction type, and if that instruction
+includes an immediate, it will also have an immediate type.
+
+--------------------------------------------------------------------------
+3.1. RISC-V Instruction Formats
+--------------------------------------------------------------------------
+
+* R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | funct7     | rs2     | rs1     |funct3| rd      | opcode      |
+ +------------+---------+---------+------+---------+-------------+
+
+* I-type
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     |funct3| rd      | opcode      |
+ +----------------------+---------+------+---------+-------------+
+
+* S-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     |funct3| imm     | opcode      |
+ +------------+---------+---------+------+---------+-------------+
+
+* U-type
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | opcode      |
+ +---------------------------------------+---------+-------------+
+
+--------------------------------------------------------------------------
+3.2. RISC-V Immediate Formats
+--------------------------------------------------------------------------
+
+RISC-V has an asymmetric immediate encoding which means that the
+immediates are formed by concatenating different bits in an asymmetric
+order based on the specific immediate formats. Note that in RISC-V all
+immediates are always sign extended, and the sign-bit for the immediate
+is always in bit 31 of the instruction.
+
+The following diagrams illustrate how to create a 32-bit immediate from
+each of the five immediate formats. The fields are labeled with the
+instruction bits used to construct their value. <-- n is used to indicate
+repeating bit n of the instruction to fill that field and z is used to
+indicate a bit which is always set to zero.
+
+* I-immediate
+
+  31                                        10        5 4     1  0
+ +-----------------------------------------+-----------+-------+--+
+ |                                  <-- 31 | 30:25     | 24:21 |20|
+ +-----------------------------------------+-----------+-------+--+
+
+* S-immediate
+
+  31                                        10        5 4     1  0
+ +-----------------------------------------+-----------+-------+--+
+ |                                  <-- 31 | 30:25     | 11:8  |7 |
+ +-----------------------------------------+-----------+-------+--+
+
+* B-immediate
+
+  31                                  12 11 10        5 4     1  0
+ +--------------------------------------+--+-----------+-------+--+
+ |                               <-- 31 |7 | 30:25     | 11:8  |z |
+ +--------------------------------------+--+-----------+-------+--+
+
+* U-immediate
+
+  31 30               20 19           12 11                      0
+ +--+-------------------+---------------+-------------------------+
+ |31| 30:20             | 19:12         |                   <-- z |
+ +--+-------------------+---------------+-------------------------+
+
+* J-immediate
+
+  31                  20 19           12 11 10        5 4     1  0
+ +----------------------+---------------+--+-----------+-------+--+
+ |               <-- 31 | 19:12         |20| 30:25     | 24:21 |z |
+ +----------------------+---------------+--+-----------+-------+--+
+
+--------------------------------------------------------------------------
+4. RISC-V Instruction Details
+--------------------------------------------------------------------------
+
+For each instruction we include a brief summary, assembly syntax,
+instruction semantics, instruction and immediate encoding format, and the
+actual encoding for the instruction. We use the following conventions
+when specifying the instruction semantics:
+
+ - R[rx]      : general-purpose register value for register specifier rx
+ - CSR[src]   : control/status register value for register specifier csr
+ - sext       : sign extend to 32 bits
+ - M_XB[addr] : X-byte memory value at address addr
+ - PC         : current program counter
+ - <s         : signed less-than comparison
+ - >=s        : signed greater than or equal to comparison
+ - <u         : unsigned less-than comparison
+ - >=u        : unsigned greater than or equal to comparison
+ - imm        : immediate according to the immediate type
+
+Unless otherwise specified assume instruction updates PC with PC+4.
+
+--------------------------------------------------------------------------
+4.1. Control/Status Register Instructions
+--------------------------------------------------------------------------
+
+* CSRW
+
+ - Summary   : Move value in GPR to control/status register
+ - Assembly  : csrw csr, rs1
+ - Semantics : CSR[csr] = R[rs1]
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | csr                  | rs1     | 001  | rd      | 1110011     |
+ +----------------------+---------+------+---------+-------------+
+
+The control/status register write instruction is used to read a GPR and
+write the result to a CSR. The CSRs supported are listed in Section 5. 
+Note that in RISC-V CSRW is really a pseudo-instruction for a specific usage
+of CSRRW, but here we only support the subset of CSRRW captured by CSRW.
+See Section 6 for more details about pseudo-instructions.
+
+--------------------------------------------------------------------------
+4.2. Register-Register Arithmetic Instructions
+--------------------------------------------------------------------------
+
+* ADD
+
+ - Summary   : Addition with 3 GPRs, no overflow exception
+ - Assembly  : add rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] + R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 000  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* SUB
+
+ - Summary   : Subtraction with 3 GPRs, no overflow exception
+ - Assembly  : sub rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] - R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0100000    | rs2     | rs1     | 000  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* AND
+
+ - Summary   : Bitwise logical AND with 3 GPRs
+ - Assembly  : and rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] & R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 111  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* OR
+
+ - Summary   : Bitwise logical OR with 3 GPRs
+ - Assembly  : or rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] | R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 110  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* XOR
+
+ - Summary   : Bitwise logical XOR with 3 GPRs
+ - Assembly  : xor rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] ^ R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 100  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* SLT
+
+ - Summary   : Record result of signed less-than comparison with 2 GPRs
+ - Assembly  : slt rd, rs1, rs2
+ - Semantics : R[rd] = ( R[rs1] <s R[rs2] )
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 010  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses a _signed_ comparison.
+
+* SLTU
+
+ - Summary   : Record result of unsigned less-than comparison with 2 GPRs
+ - Assembly  : sltu rd, rs1, rs2
+ - Semantics : R[rd] = ( R[rs1] <u R[rs2] )
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 011  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses an _unsigned_ comparison.
+
+* SRA
+
+ - Summary   : Shift right arithmetic by register value (sign-extend)
+ - Assembly  : sra rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] >>> R[rs2][4:0]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0100000    | rs2     | rs1     | 101  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should ensure that the sign-bit of R[rs1] is
+extended to the right as it does the right shift. The hardware _must_
+only use the bottom five bits of R[rs2] when performing the shift.
+
+* SRL
+
+ - Summary   : Shift right logical by register value (append zeroes)
+ - Assembly  : srl rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] >> R[rs2][4:0]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 101  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the left as it does the
+right shift. The hardware _must_ only use the bottom five bits of R[rs2]
+when performing the shift.
+
+* SLL
+
+ - Summary   : Shift left logical by register value (append zeroes)
+ - Assembly  : sll rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] << R[rs2][4:0]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | rs2     | rs1     | 001  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the right as it does the
+left shift. The hardware _must_ only use the bottom five bits of R[rs2]
+when performing the shift.
+
+* MUL
+
+ - Summary   : Signed multiplication with 3 GPRs, no overflow exception
+ - Assembly  : mul rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] * R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000001    | rs2     | rs1     | 000  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* DIV
+
+ - Summary   : Signed division with 3 GPRs, no overflow exception
+ - Assembly  : div rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] / R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000001    | rs2     | rs1     | 100  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* DIVU
+
+ - Summary   : Unsigned division with 3 GPRs, no overflow exception
+ - Assembly  : divu rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] /u R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000001    | rs2     | rs1     | 101  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* REM
+
+ - Summary   : Signed remainder with 3 GPRs, no overflow exception
+ - Assembly  : rem rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] % R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000001    | rs2     | rs1     | 110  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* REMU
+
+ - Summary   : Unsigned remainder with 3 GPRs, no overflow exception
+ - Assembly  : remu rd, rs1, rs2
+ - Semantics : R[rd] = R[rs1] %u R[rs2]
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000001    | rs2     | rs1     | 111  | rd      | 0110011     |
+ +------------+---------+---------+------+---------+-------------+
+
+--------------------------------------------------------------------------
+4.3. Register-Immediate Arithmetic Instructions
+--------------------------------------------------------------------------
+
+* ADDI
+
+ - Summary   : Add constant, no overflow exception
+ - Assembly  : addi rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] + sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 000  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* ANDI
+
+ - Summary   : Bitwise logical AND with constant
+ - Assembly  : andi rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] & sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 111  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* ORI
+
+ - Summary   : Bitwise logical OR with constant
+ - Assembly  : ori rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] | sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 110  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* XORI
+
+ - Summary   : Bitwise logical XOR with constant
+ - Assembly  : xori rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] ^ sext(imm)
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 100  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SLTI
+
+ - Summary   : Set GPR if source GPR < constant, signed comparison
+ - Assembly  : slti rd, rs1, imm
+ - Semantics : R[rd] = ( R[rs1] <s sext(imm) )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 010  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SLTIU
+
+ - Summary   : Set GPR if source GPR is < constant, unsigned comparison
+ - Assembly  : sltiu rd, rs1, imm
+ - Semantics : R[rd] = ( R[rs1] <u sext(imm) )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 011  | rd      | 0010011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SRAI
+
+ - Summary   : Shift right arithmetic by constant (sign-extend)
+ - Assembly  : srai rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] >>> imm
+ - Format    : I-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0100000    | imm     | rs1     | 101  | rd      | 0010011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should ensure that the sign-bit of R[rs1] is
+extended to the right as it does the right shift.
+
+* SRLI
+
+ - Summary   : Shift right logical by constant (append zeroes)
+ - Assembly  : srli rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] >> imm
+ - Format    : I-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | imm     | rs1     | 101  | rd      | 0010011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the left as it does the
+right shift.
+
+* SLLI
+
+ - Summary   : Shift left logical constant (append zeroes)
+ - Assembly  : slli rd, rs1, imm
+ - Semantics : R[rd] = R[rs1] << imm
+ - Format    : R-type
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | 0000000    | imm     | rs1     | 001  | rd      | 0010011     |
+ +------------+---------+---------+------+---------+-------------+
+
+Note that the hardware should append zeros to the right as it does the
+left shift.
+
+* LUI
+
+ - Summary   : Load constant into upper bits of word
+ - Assembly  : lui rd, imm
+ - Semantics : R[rd] = imm << 12
+ - Format    : I-type, U-immediate
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | 0110111     |
+ +---------------------------------------+---------+-------------+
+
+* AUIPC
+
+ - Summary   : Load PC + constant into upper bits of word
+ - Assembly  : auipc rd, imm
+ - Semantics : R[rd] = PC + ( imm << 12 )
+ - Format    : I-type, U-immediate
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | 0010111     |
+ +---------------------------------------+---------+-------------+
+
+--------------------------------------------------------------------------
+4.4. Memory Instructions
+--------------------------------------------------------------------------
+
+* LW
+
+ - Summary   : Load word from memory
+ - Assembly  : lw rd, imm(rs1)
+ - Semantics : R[rd] = M_4B[ R[rs1] + sext(imm) ]
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 010  | rd      | 0000011     |
+ +----------------------+---------+------+---------+-------------+
+
+All addresses used with LW instructions must be four-byte aligned. This
+means the bottom two bits of every effective address (i.e., after the
+base address is added to the offset) will always be zero.
+
+* SW
+
+ - Summary   : Store word into memory
+ - Assembly  : sw rs2, imm(rs1)
+ - Semantics : M_4B[ R[rs1] + sext(imm) ] = R[rs2]
+ - Format    : S-type, S-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 010  | imm     | 0100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+All addresses used with SW instructions must be four-byte aligned. This
+means the bottom two bits of every effective address (i.e., after the
+base address is added to the offset) will always be zero.
+
+* LH
+
+ - Summary   : Load a half-word then sigh-extend to a word
+ - Assembly  : lh rd, imm(rs1)
+ - Semantics : R[rd] = sext( M_2B[ R[rs1] + sext(imm) ] )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 001  | rd      | 0000011     |
+ +----------------------+---------+------+---------+-------------+
+
+* LHU
+
+ - Summary   : Load a half-word then zero-extend to a word
+ - Assembly  : lhu rd, imm(rs1)
+ - Semantics : R[rd] = zext( M_2B[ R[rs1] + sext(imm) ] )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 101  | rd      | 0000011     |
+ +----------------------+---------+------+---------+-------------+
+
+All addresses used with LH and LHU instructions must be two-byte aligned.
+This means the bottom one bit of every effective address (i.e., after the
+base address is added to the offset) will always be zero.
+
+* LB
+
+ - Summary   : Load a byte then sigh-extend to a word
+ - Assembly  : lb rd, imm(rs1)
+ - Semantics : R[rd] = sext( M_1B[ R[rs1] + sext(imm) ] )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 000  | rd      | 0000011     |
+ +----------------------+---------+------+---------+-------------+
+
+* LBU
+
+ - Summary   : Load a byte then zero-extend to a word
+ - Assembly  : lbu rd, imm(rs1)
+ - Semantics : R[rd] = zext( M_1B[ R[rs1] + sext(imm) ] )
+ - Format    : I-type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 100  | rd      | 0000011     |
+ +----------------------+---------+------+---------+-------------+
+
+* SH
+
+ - Summary   : Store the lower half-word in a GPR into memory
+ - Assembly  : sh rs2, imm(rs1)
+ - Semantics : M_2B[ R[rs1] + sext(imm) ] = R[rs2] & 0xffff_ffff
+ - Format    : S-type, S-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 001  | imm     | 0100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+All addresses used with SH instructions must be two-byte aligned. This
+means the bottom one bit of every effective address (i.e., after the
+base address is added to the offset) will always be zero.
+
+* SB
+
+ - Summary   : Store the least significant byte in a GPR into memory
+ - Assembly  : sb rs2, imm(rs1)
+ - Semantics : M_1B[ R[rs1] + sext(imm) ] = R[rs2] & 0xffff
+ - Format    : S-type, S-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 000  | imm     | 0100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+--------------------------------------------------------------------------
+4.5. Unconditional Jump Instructions
+--------------------------------------------------------------------------
+
+* JAL
+
+ - Summary   : Jump to address and place return address in GPR
+ - Assembly  : jal rd, imm
+ - Semantics : R[rd] = PC + 4; PC = PC + sext(imm)
+ - Format    : U-type, J-immediate
+
+  31                                      11      7 6           0
+ +---------------------------------------+---------+-------------+
+ | imm                                   | rd      | 1101111     |
+ +---------------------------------------+---------+-------------+
+
+* JALR
+
+ - Summary   : Jump to address and place return address in GPR
+ - Assembly  : jalr rd, rs1, imm
+ - Semantics : R[rd] = PC + 4; PC = ( R[rs1] + sext(imm) ) & 0xfffffffe
+ - Format    : I-Type, I-immediate
+
+  31                  20 19     15 14  12 11      7 6           0
+ +----------------------+---------+------+---------+-------------+
+ | imm                  | rs1     | 000  | rd      | 1100111     |
+ +----------------------+---------+------+---------+-------------+
+
+Note that the target address is obtained by adding the 12-bit signed
+I-immediate to the value in register rs1, then setting the
+least-significant bit of the result to zero. In other words, the JALR
+instruction ignores the lowest bit of the calculated target address.
+
+--------------------------------------------------------------------------
+4.6. Conditional Branch Instructions
+--------------------------------------------------------------------------
+
+* BEQ
+
+ - Summary   : Branch if 2 GPRs are equal
+ - Assembly  : beq rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] == R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 000  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* BNE
+
+ - Summary   : Branch if 2 GPRs are not equal
+ - Assembly  : bne rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] != R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 001  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+* BLT
+
+ - Summary   : Branch based on signed comparison of two GPRs
+ - Assembly  : blt rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] <s R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 100  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses a _signed_ comparison.
+
+* BGE
+
+ - Summary   : Branch based on signed comparison of two GPRs
+ - Assembly  : bge rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] >=s R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 101  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses a _signed_ comparison.
+
+* BLTU
+
+ - Summary   : Branch based on unsigned comparison of two GPRs
+ - Assembly  : bltu rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] <u R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 110  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses an _unsigned_ comparison.
+
+* BGEU
+
+ - Summary   : Branch based on unsigned comparison of two GPRs
+ - Assembly  : bgeu rs1, rs2, imm
+ - Semantics : PC = ( R[rs1] >=u R[rs2] ) ? PC + sext(imm) : PC + 4
+ - Format    : S-type, B-immediate
+
+  31        25 24     20 19     15 14  12 11      7 6           0
+ +------------+---------+---------+------+---------+-------------+
+ | imm        | rs2     | rs1     | 111  | imm     | 1100011     |
+ +------------+---------+---------+------+---------+-------------+
+
+This instruction uses an _unsigned_ comparison.
+
+--------------------------------------------------------------------------
+5. RISC-V Privileged ISA
+--------------------------------------------------------------------------
+
+Our implemented RISC-V does not support any kind of distinction between user
+and privileged mode. Using the terminology in the RISC-V vol 2 ISA manual,
+our implementation only supports M-mode.
+
+* Reset Vector
+
+ - RISC-V specifies two potential reset vectors: one at a low address,
+   and one at a high address. Our implementation uses the high address reset
+   vector at 0x00080000.
+
+* Control/Status Registers
+
+RISC-V supports at most 12-bit addresable CSRs. Our implementation only supports
+two CSRs: status and stats_en. Here is the mapping:
+
+ CSR Name    Privilege  Read/Write  CSR Num  Note
+ ---------------------------------------------------
+ status      M          W           0x015    non-standard
+ stats_en    M          W           0x00A    non-standard
+
+Here is a description of each of these two CSRs.
+
+ - status: 0x015
+
+    Used to assert the completion of the current simulation and report to the
+    simulator if the simulation passes or fails.
+
+ - stats_en: 0x00A
+
+    Used to enable or disable the statistics tracking feature of the
+    processor (i.e., counting cycles and instructions)
+
+* Address Translation
+
+Our implementation only supports the most basic form of address translation.
+Every logical address is directly mapped to the corresponding physical
+address. 
+
+--------------------------------------------------------------------------
+6. RISC-V Pseudo-Instructions
+--------------------------------------------------------------------------
+
+It is very important to understand the relationship between the "real"
+instructions presented in this manual, the "real" instructions in the
+official RISC-V ISA manual, and pseudo-instructions.
+
+Firstly, CSRW is a "real" instruction in our implementation, yet a
+pseudo-instruction in the official RISC-V ISA manual. It is a specific usage
+of the CSRRW instruction, which swaps the content of a GPR and a CSR:
+    
+    csrw rd, csr == csrrw rd, csr, x0
+
+Secondly, NOP, MV, NOT, NEG, J, JR, BEQZ, BNEZ, BLEZ, BGTZ, BLTZ, BGEZ and more
+are pseudo-instructions accepted in the official RISC-V ISA manual. They are
+all specific usage of the CSRRW instruction, and many of them make usage of the
+x0 register, which is constant 0, or a constant immediate:
+
+    nop == addi x0, x0, 0
+    mv rd, rs1 == addi rd, rs1, 0
+    j label == jal rd, label
+    jr rs1 == jalr x0, rs1, 0
+    ...
+
+Other than these pseudo-instructions, the RISC-V assembler also recognize the
+following pesudo-instructions, which are mapped to a sequence of instructions:
+    
+    li rd, imm == lui rd, imm[31:12]; addi rd, rd, imm[11:0];
+    li rd, imm == lui rd, imm[31:12] + 0x1000; addi rd, rd, imm[11:0];
+    la rd, label == auipc rd, label[31:12]; addi rd, rd, symbol[11:0];
+    ...
+
+Note that LI can be mapped into two forms. This is because all immediates in
+RISC-V are sign-extended, so if bit imm[11] is 1, the higher half of the
+immediate needs to be manipulated before loading. However, the immediate is
+known at compile/assemble time, so the compiler/assembler will figure out how
+to encode the immediates.

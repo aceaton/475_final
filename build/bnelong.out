@@ -1,0 +1,199 @@
+WARNING: ../riscvlong/riscvlong-sim.v:154: $readmemh: The behaviour for reg[...] mem[N:0]; $readmemh("...", mem); changed in the 1364-2005 standard. To avoid ambiguity, use mem[0:N] or explicit range parameters $readmemh("...", mem, start, stop);. Defaulting to 1364-2005 behavior.
+VCD info: dumpfile ../tests/build/vmh/riscv-bne.vcd opened for output.
+{ xxxxxxxx |        |        |        |        }
+{ xxxxxxxx |        |        |        |        }
+{ xxxxxxxx |        |        |        |        }
+{ 00080000 |  (-_-) |  (-_-) |  (-_-) |  (-_-) }
+{ 00080000 |  (-_-) |  (-_-) |  (-_-) |  (-_-) }
+{ 00080004 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 00080008 | addi   | addi   |  (-_-) |  (-_-) }
+{ 0008000c | bne    | addi   | addi   |  (-_-) }
+{-00080010-|-addi  -| bne    | addi   |  (-_-) }
+{ 0008001c |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 00080020 | bne    |  (-_-) |  (-_-) | addi   }
+{-00080024-|-addi  -| bne    |  (-_-) | addi   }
+{ 00080014 |  (-_-) |  (-_-) | bne    | bne    }
+{ 00080018 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 0008001c | bne    | addi   |  (-_-) |  (-_-) }
+{-00080020-|-bne   -| bne    | addi   | bne    }
+{ 00080028 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 0008002c | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 00080030 | addi   | addi   |  (-_-) | addi   }
+{ 00080034 | bne    | addi   | addi   | bne    }
+{-00080038-|-addi  -| bne    | addi   |  (-_-) }
+{ 00080044 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 00080048 | bne    |  (-_-) |  (-_-) | addi   }
+{-0008004c-|-addi  -| bne    |  (-_-) | addi   }
+{ 0008003c |  (-_-) |  (-_-) | bne    | bne    }
+{ 00080040 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 00080044 | bne    | addi   |  (-_-) |  (-_-) }
+{-00080048-|-bne   -| bne    | addi   | bne    }
+{ 00080050 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 00080054 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 00080058 | addi   | addi   |  (-_-) | addi   }
+{ 0008005c | bne    | addi   | addi   | bne    }
+{-00080060-|-addi  -| bne    | addi   |  (-_-) }
+{ 0008006c |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 00080070 | bne    |  (-_-) |  (-_-) | addi   }
+{-00080074-|-addi  -| bne    |  (-_-) | addi   }
+{ 00080064 |  (-_-) |  (-_-) | bne    | bne    }
+{ 00080068 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 0008006c | bne    | addi   |  (-_-) |  (-_-) }
+{-00080070-|-bne   -| bne    | addi   | bne    }
+{ 00080078 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 0008007c | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 00080080 | addi   | addi   |  (-_-) | addi   }
+{ 00080084 | bne    | addi   | addi   | bne    }
+{-00080088-|-addi  -| bne    | addi   |  (-_-) }
+{ 00080094 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 00080098 | bne    |  (-_-) |  (-_-) | addi   }
+{-0008009c-|-addi  -| bne    |  (-_-) | addi   }
+{ 0008008c |  (-_-) |  (-_-) | bne    | bne    }
+{ 00080090 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 00080094 | bne    | addi   |  (-_-) |  (-_-) }
+{-00080098-|-bne   -| bne    | addi   | bne    }
+{ 000800a0 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 000800a4 | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 000800a8 | addi   | addi   |  (-_-) | addi   }
+{ 000800ac | bne    | addi   | addi   | bne    }
+{ 000800b0 | addi   | bne    | addi   |  (-_-) }
+{ 000800b4 | bne    | addi   | bne    |  (-_-) }
+{-000800b8-|-addi  -| bne    | addi   | addi   }
+{ 000800bc |  (-_-) |  (-_-) | bne    | addi   }
+{ 000800c0 | bne    |  (-_-) |  (-_-) | bne    }
+{ 000800c4 | addi   | bne    |  (-_-) | addi   }
+{ 000800c8 | addi   | addi   | bne    | bne    }
+{ 000800cc | bne    | addi   | addi   |  (-_-) }
+{ 000800d0 | addi   | bne    | addi   |  (-_-) }
+{ 000800d4 | bne    | addi   | bne    | bne    }
+{-000800d8-|-addi  -| bne    | addi   | addi   }
+{ 000800dc |  (-_-) |  (-_-) | bne    | addi   }
+{ 000800e0 | bne    |  (-_-) |  (-_-) | bne    }
+{ 000800e4 | addi   | bne    |  (-_-) | addi   }
+{ 000800e8 | addi   | addi   | bne    | bne    }
+{ 000800ec | bne    | addi   | addi   |  (-_-) }
+{ 000800f0 | addi   | bne    | addi   |  (-_-) }
+{ 000800f4 | bne    | addi   | bne    | bne    }
+{-000800f8-|-addi  -| bne    | addi   | addi   }
+{ 000800fc |  (-_-) |  (-_-) | bne    | addi   }
+{ 00080100 | bne    |  (-_-) |  (-_-) | bne    }
+{ 00080104 | addi   | bne    |  (-_-) | addi   }
+{ 00080108 | addi   | addi   | bne    | bne    }
+{ 0008010c | bne    | addi   | addi   |  (-_-) }
+{ 00080110 | addi   | bne    | addi   |  (-_-) }
+{ 00080114 | bne    | addi   | bne    | bne    }
+{-00080118-|-addi  -| bne    | addi   | addi   }
+{ 0008011c |  (-_-) |  (-_-) | bne    | addi   }
+{ 00080120 | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080124 | addi   | addi   |  (-_-) | addi   }
+{ 00080128 | nop    | addi   | addi   | bne    }
+{ 0008012c | bne    | nop    | addi   |  (-_-) }
+{ 00080130 | addi   | bne    | nop    |  (-_-) }
+{ 00080134 | bne    | addi   | bne    | addi   }
+{-00080138-|-addi  -| bne    | addi   | addi   }
+{ 0008013c |  (-_-) |  (-_-) | bne    | nop    }
+{ 00080140 | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080144 | addi   | addi   |  (-_-) | addi   }
+{ 00080148 | nop    | addi   | addi   | bne    }
+{ 0008014c | nop    | nop    | addi   |  (-_-) }
+{ 00080150 | bne    | nop    | nop    |  (-_-) }
+{ 00080154 | addi   | bne    | nop    | addi   }
+{ 00080158 | bne    | addi   | bne    | addi   }
+{-0008015c-|-addi  -| bne    | addi   | nop    }
+{ 00080160 |  (-_-) |  (-_-) | bne    | nop    }
+{ 00080164 | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080168 | nop    | addi   |  (-_-) | addi   }
+{ 0008016c | addi   | nop    | addi   | bne    }
+{ 00080170 | bne    | addi   | nop    |  (-_-) }
+{ 00080174 | addi   | bne    | addi   |  (-_-) }
+{ 00080178 | bne    | addi   | bne    | addi   }
+{-0008017c-|-addi  -| bne    | addi   | nop    }
+{ 00080180 |  (-_-) |  (-_-) | bne    | addi   }
+{ 00080184 | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080188 | nop    | addi   |  (-_-) | addi   }
+{ 0008018c | addi   | nop    | addi   | bne    }
+{ 00080190 | nop    | addi   | nop    |  (-_-) }
+{ 00080194 | bne    | nop    | addi   |  (-_-) }
+{ 00080198 | addi   | bne    | nop    | addi   }
+{ 0008019c | bne    | addi   | bne    | nop    }
+{-000801a0-|-addi  -| bne    | addi   | addi   }
+{ 000801a4 |  (-_-) |  (-_-) | bne    | nop    }
+{ 000801a8 | addi   |  (-_-) |  (-_-) | bne    }
+{ 000801ac | nop    | addi   |  (-_-) | addi   }
+{ 000801b0 | nop    | nop    | addi   | bne    }
+{ 000801b4 | addi   | nop    | nop    |  (-_-) }
+{ 000801b8 | bne    | addi   | nop    |  (-_-) }
+{ 000801bc | addi   | bne    | addi   | addi   }
+{ 000801c0 | bne    | addi   | bne    | nop    }
+{-000801c4-|-addi  -| bne    | addi   | nop    }
+{ 000801c8 |  (-_-) |  (-_-) | bne    | addi   }
+{ 000801cc | addi   |  (-_-) |  (-_-) | bne    }
+{ 000801d0 | addi   | addi   |  (-_-) | addi   }
+{ 000801d4 | bne    | addi   | addi   | bne    }
+{ 000801d8 | addi   | bne    | addi   |  (-_-) }
+{ 000801dc | bne    | addi   | bne    |  (-_-) }
+{-000801e0-|-addi  -| bne    | addi   | addi   }
+{ 000801e4 |  (-_-) |  (-_-) | bne    | addi   }
+{ 000801e8 | addi   |  (-_-) |  (-_-) | bne    }
+{ 000801ec | addi   | addi   |  (-_-) | addi   }
+{ 000801f0 | nop    | addi   | addi   | bne    }
+{ 000801f4 | bne    | nop    | addi   |  (-_-) }
+{ 000801f8 | addi   | bne    | nop    |  (-_-) }
+{ 000801fc | bne    | addi   | bne    | addi   }
+{-00080200-|-addi  -| bne    | addi   | addi   }
+{ 00080204 |  (-_-) |  (-_-) | bne    | nop    }
+{ 00080208 | addi   |  (-_-) |  (-_-) | bne    }
+{ 0008020c | addi   | addi   |  (-_-) | addi   }
+{ 00080210 | nop    | addi   | addi   | bne    }
+{ 00080214 | nop    | nop    | addi   |  (-_-) }
+{ 00080218 | bne    | nop    | nop    |  (-_-) }
+{ 0008021c | addi   | bne    | nop    | addi   }
+{ 00080220 | bne    | addi   | bne    | addi   }
+{-00080224-|-addi  -| bne    | addi   | nop    }
+{ 00080228 |  (-_-) |  (-_-) | bne    | nop    }
+{ 0008022c | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080230 | nop    | addi   |  (-_-) | addi   }
+{ 00080234 | addi   | nop    | addi   | bne    }
+{ 00080238 | bne    | addi   | nop    |  (-_-) }
+{ 0008023c | addi   | bne    | addi   |  (-_-) }
+{ 00080240 | bne    | addi   | bne    | addi   }
+{-00080244-|-addi  -| bne    | addi   | nop    }
+{ 00080248 |  (-_-) |  (-_-) | bne    | addi   }
+{ 0008024c | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080250 | nop    | addi   |  (-_-) | addi   }
+{ 00080254 | addi   | nop    | addi   | bne    }
+{ 00080258 | nop    | addi   | nop    |  (-_-) }
+{ 0008025c | bne    | nop    | addi   |  (-_-) }
+{ 00080260 | addi   | bne    | nop    | addi   }
+{ 00080264 | bne    | addi   | bne    | nop    }
+{-00080268-|-addi  -| bne    | addi   | addi   }
+{ 0008026c |  (-_-) |  (-_-) | bne    | nop    }
+{ 00080270 | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080274 | nop    | addi   |  (-_-) | addi   }
+{ 00080278 | nop    | nop    | addi   | bne    }
+{ 0008027c | addi   | nop    | nop    |  (-_-) }
+{ 00080280 | bne    | addi   | nop    |  (-_-) }
+{ 00080284 | addi   | bne    | addi   | addi   }
+{ 00080288 | bne    | addi   | bne    | nop    }
+{-0008028c-|-addi  -| bne    | addi   | nop    }
+{ 00080290 |  (-_-) |  (-_-) | bne    | addi   }
+{ 00080294 | addi   |  (-_-) |  (-_-) | bne    }
+{ 00080298 | bne    | addi   |  (-_-) | addi   }
+{-0008029c-|-addi  -| bne    | addi   | bne    }
+{ 000802a8 |  (-_-) |  (-_-) | bne    |  (-_-) }
+{ 000802ac | addi   |  (-_-) |  (-_-) |  (-_-) }
+{ 000802b0 | addi   | addi   |  (-_-) | addi   }
+{ 000802b4 | addi   | addi   | addi   | bne    }
+{ 000802b8 | addi   | addi   | addi   |  (-_-) }
+{ 000802bc | bne    | addi   | addi   |  (-_-) }
+{ 000802c0 | addi   | bne    | addi   | addi   }
+{ 000802c4 | addi   | addi   | bne    | addi   }
+{ 000802c8 | csrw   | addi   | addi   | addi   }
+{ 000802cc | bne    | csrw   | addi   | addi   }
+{-000802d0-|-nop   -| bne    | csrw   | bne    }
+{ 000802c8 |  (-_-) |  (-_-) | bne    | addi   }
+{ 000802cc | bne    |  (-_-) |  (-_-) | addi   }
+{-000802d0-|-nop   -| bne    |  (-_-) | csrw   }
+*** PASSED ***
+{ 000802c8 |  (-_-) |  (-_-) | bne    | bne    }
+{ 000802cc |

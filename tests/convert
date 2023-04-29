@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ ! -d "dep" ]; then
+  mkdir dep
+fi
+
+if [ ! -d "bin" ]; then
+  mkdir bin
+fi
+
+if [ ! -d "dump" ]; then
+  mkdir dump
+fi
+
+if [ ! -d "vmh" ]; then
+  mkdir vmh
+fi
+
+mv *.d dep/
+mv riscv* bin/
+for x in bin/*;do
+    riscv32-unknown-elf-objdump -EL -sz --section=.xcpthandler --section=.text --section=.data $x > $x.dump
+    python2 ../scripts/objdump2vmh.py $x.dump > $x.vmh;
+done
+mv bin/*.dump dump/
+mv bin/*.vmh vmh/

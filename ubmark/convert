@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [ ! -d "dep" ]; then
+  mkdir dep
+fi
+
+if [ ! -d "obj" ]; then
+  mkdir obj
+fi
+
+if [ ! -d "bin" ]; then
+  mkdir bin
+fi
+
+if [ ! -d "dump" ]; then
+  mkdir dump
+fi
+
+if [ ! -d "vmh" ]; then
+  mkdir vmh
+fi
+
+mv ubmark* bin/
+mv bin/ubmark*.* dep/
+mv dep/ubmark-config.h .
+mv dep/ubmark.mk .
+mv *.a dep/
+mv dep/ubmark*.o obj/
+for x in bin/*;do
+    riscv32-unknown-elf-objdump -sz --section=.text --section=.data --section=.sdata --section=.xcpthandler --section=.init --section=.fini --section=.ctors --section=.dtors --section=.eh_frame --section=.jcr --section=.sbss --section=.bss --section=.rodata $x > $x.dump
+    sed -i '/.text/ i\
+Inserted tag: bootstrap:\
+\ 80000 37110000 b7d10000 93818123 b7020100  7..........#....\
+\ 80010 93824207 67800200 13000000 13000000  ..B.g...........\
+\
+    ' $x.dump
+    python2 ../scripts/objdump2vmh.py $x.dump > $x.vmh;
+done
+mv bin/*.dump dump/
+mv bin/*.vmh vmh/
