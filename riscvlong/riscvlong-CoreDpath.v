@@ -9,6 +9,7 @@
 `include "riscvlong-InstMsg.v"
 `include "riscvlong-CoreDpathAlu.v"
 `include "riscvlong-CoreDpathRegfile.v"
+`include "riscvlong-CoreDpathVectorRegfile.v"
 
 module riscv_CoreDpath
 (
@@ -455,6 +456,20 @@ module riscv_CoreDpath
   // Register File
 
   riscv_CoreDpathRegfile rfile
+  (
+    .clk     (clk),
+    .raddr0  (rf_raddr0_Dhl),
+    .rdata0  (rf_rdata0_Dhl),
+    .raddr1  (rf_raddr1_Dhl),
+    .rdata1  (rf_rdata1_Dhl),
+    .wen_p   (rf_wen_Whl),
+    .waddr_p (rf_waddr_Whl),
+    .wdata_p (wb_mux_out_Whl)
+  );
+
+  // VECTOR Register File
+
+  riscv_CoreDpathVectorRegfile vrfile
   (
     .clk     (clk),
     .raddr0  (rf_raddr0_Dhl),
