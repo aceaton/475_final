@@ -207,6 +207,25 @@ module riscv_CoreDpath
 		: ( rdata1_byp_mux_sel_Dhl == 3'd5 ) ? wb_mux_out_Whl
 		:																			 32'bx;	
 
+	// // vector rdata0 bypass
+	// wire [31:0] rdata0_byp_mux_out_Dhl
+	// 	= ( rdata0_byp_mux_sel_Dhl == 3'd0 ) ? rf_rdata0_Dhl
+	// 	: ( rdata0_byp_mux_sel_Dhl == 3'd1 ) ? execute_mux_out_Xhl
+	//   : ( rdata0_byp_mux_sel_Dhl == 3'd2 ) ? wb_mux_out_Mhl
+	//   : ( rdata0_byp_mux_sel_Dhl == 3'd3 ) ? wb_mux_out_X2hl
+	// 	: ( rdata0_byp_mux_sel_Dhl == 3'd4 ) ? execute_mux_out_X3hl
+	// 	: ( rdata0_byp_mux_sel_Dhl == 3'd5 ) ? wb_mux_out_Whl
+	// 	:																			 32'bx;	
+
+	// // vector rdata1 bypass
+	// wire [31:0] rdata1_byp_mux_out_Dhl
+	// 	= ( rdata1_byp_mux_sel_Dhl == 3'd0 ) ? rf_rdata1_Dhl
+	// 	: ( rdata1_byp_mux_sel_Dhl == 3'd1 ) ? execute_mux_out_Xhl
+	//   : ( rdata1_byp_mux_sel_Dhl == 3'd2 ) ? wb_mux_out_Mhl
+	//   : ( rdata1_byp_mux_sel_Dhl == 3'd3 ) ? wb_mux_out_X2hl
+	// 	: ( rdata1_byp_mux_sel_Dhl == 3'd4 ) ? execute_mux_out_X3hl
+	// 	: ( rdata1_byp_mux_sel_Dhl == 3'd5 ) ? wb_mux_out_Whl
+	// 	:																			 32'bx;	
 
   // Operand 0 mux
 
@@ -228,6 +247,27 @@ module riscv_CoreDpath
     : ( op1_mux_sel_Dhl == 3'd5 ) ? imm_s_Dhl
     : ( op1_mux_sel_Dhl == 3'd6 ) ? const0
     :                               32'bx;
+
+    
+// VECTOR
+  //     wire [31:0] op0_mux_out_Dhl
+  //   = ( op0_mux_sel_Dhl == 2'd0 ) ? rdata0_byp_mux_out_Dhl
+  //   : ( op0_mux_sel_Dhl == 2'd1 ) ? pc_Dhl
+  //   : ( op0_mux_sel_Dhl == 2'd2 ) ? pc_plus4_Dhl
+  //   : ( op0_mux_sel_Dhl == 2'd3 ) ? const0
+  //   :                               32'bx;
+
+  // // Operand 1 mux
+
+  // wire [31:0] op1_mux_out_Dhl
+  //   = ( op1_mux_sel_Dhl == 3'd0 ) ? rdata1_byp_mux_out_Dhl
+  //   : ( op1_mux_sel_Dhl == 3'd1 ) ? shamt_Dhl
+  //   : ( op1_mux_sel_Dhl == 3'd2 ) ? imm_u_Dhl
+  //   : ( op1_mux_sel_Dhl == 3'd3 ) ? imm_sb_Dhl
+  //   : ( op1_mux_sel_Dhl == 3'd4 ) ? imm_i_Dhl
+  //   : ( op1_mux_sel_Dhl == 3'd5 ) ? imm_s_Dhl
+  //   : ( op1_mux_sel_Dhl == 3'd6 ) ? const0
+  //   :                               32'bx;
 
   // wdata with bypassing
 
@@ -469,17 +509,17 @@ module riscv_CoreDpath
 
   // VECTOR Register File
 
-  riscv_CoreDpathVectorRegfile vrfile
-  (
-    .clk     (clk),
-    .raddr0  (rf_raddr0_Dhl),
-    .rdata0  (rf_rdata0_Dhl),
-    .raddr1  (rf_raddr1_Dhl),
-    .rdata1  (rf_rdata1_Dhl),
-    .wen_p   (rf_wen_Whl),
-    .waddr_p (rf_waddr_Whl),
-    .wdata_p (wb_mux_out_Whl)
-  );
+  // riscv_CoreDpathVectorRegfile vrfile
+  // (
+  //   .clk     (clk),
+  //   .raddr0  (rf_raddr0_Dhl),
+  //   .rdata0  (rf_rdata0_Dhl),
+  //   .raddr1  (rf_raddr1_Dhl),
+  //   .rdata1  (rf_rdata1_Dhl),
+  //   .wen_p   (rf_wen_Whl),
+  //   .waddr_p (rf_waddr_Whl),
+  //   .wdata_p (wb_mux_out_Whl)
+  // );
 
   // ALU
 
@@ -491,9 +531,124 @@ module riscv_CoreDpath
     .out  (alu_out_Xhl)
   );
 
+  riscv_CoreDpathAlu aluv1
+  (
+    .in0  (op0_mux_out_Xhl),
+    .in1  (op1_mux_out_Xhl),
+    .fn   (alu_fn_Xhl),
+    .out  (alu_out_Xhl)
+  );
+
+  riscv_CoreDpathAlu aluv2
+  (
+    .in0  (op0_mux_out_Xhl),
+    .in1  (op1_mux_out_Xhl),
+    .fn   (alu_fn_Xhl),
+    .out  (alu_out_Xhl)
+  );
+
+  riscv_CoreDpathAlu aluv3
+  (
+    .in0  (op0_mux_out_Xhl),
+    .in1  (op1_mux_out_Xhl),
+    .fn   (alu_fn_Xhl),
+    .out  (alu_out_Xhl)
+  );
+
+
   // Multiplier/Divider
 	
 	riscv_CoreDpathPipeMulDiv pmuldiv
+	(
+	  .clk											(clk									),
+    .reset										(reset								),
+    
+		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
+    .muldivreq_msg_a					(op0_mux_out_Dhl			),
+    .muldivreq_msg_b					(op1_mux_out_Dhl			),
+    .muldivreq_val						(muldivreq_val				),
+    .muldivreq_rdy						(muldivreq_rdy				),
+                                                   
+    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
+    .muldivresp_val						(muldivresp_val				),
+    .muldivresp_rdy						(muldivresp_rdy				),
+                                                
+		.stall_Xhl								(stall_Xhl						),
+    .stall_Mhl								(stall_Mhl						),
+    .stall_X2hl								(stall_X2hl						),
+    .stall_X3hl               (stall_X3hl           )
+	);
+
+  riscv_CoreDpathPipeMulDiv pmuldivv0
+	(
+	  .clk											(clk									),
+    .reset										(reset								),
+    
+		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
+    .muldivreq_msg_a					(op0_mux_out_Dhl			),
+    .muldivreq_msg_b					(op1_mux_out_Dhl			),
+    .muldivreq_val						(muldivreq_val				),
+    .muldivreq_rdy						(muldivreq_rdy				),
+                                                   
+    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
+    .muldivresp_val						(muldivresp_val				),
+    .muldivresp_rdy						(muldivresp_rdy				),
+                                                
+		.stall_Xhl								(stall_Xhl						),
+    .stall_Mhl								(stall_Mhl						),
+    .stall_X2hl								(stall_X2hl						),
+    .stall_X3hl               (stall_X3hl           )
+	);
+
+  // Multiplier/Divider
+	
+	riscv_CoreDpathPipeMulDiv pmuldivv1
+	(
+	  .clk											(clk									),
+    .reset										(reset								),
+    
+		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
+    .muldivreq_msg_a					(op0_mux_out_Dhl			),
+    .muldivreq_msg_b					(op1_mux_out_Dhl			),
+    .muldivreq_val						(muldivreq_val				),
+    .muldivreq_rdy						(muldivreq_rdy				),
+                                                   
+    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
+    .muldivresp_val						(muldivresp_val				),
+    .muldivresp_rdy						(muldivresp_rdy				),
+                                                
+		.stall_Xhl								(stall_Xhl						),
+    .stall_Mhl								(stall_Mhl						),
+    .stall_X2hl								(stall_X2hl						),
+    .stall_X3hl               (stall_X3hl           )
+	);
+
+  // Multiplier/Divider
+	
+	riscv_CoreDpathPipeMulDiv pmuldivv2
+	(
+	  .clk											(clk									),
+    .reset										(reset								),
+    
+		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
+    .muldivreq_msg_a					(op0_mux_out_Dhl			),
+    .muldivreq_msg_b					(op1_mux_out_Dhl			),
+    .muldivreq_val						(muldivreq_val				),
+    .muldivreq_rdy						(muldivreq_rdy				),
+                                                   
+    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
+    .muldivresp_val						(muldivresp_val				),
+    .muldivresp_rdy						(muldivresp_rdy				),
+                                                
+		.stall_Xhl								(stall_Xhl						),
+    .stall_Mhl								(stall_Mhl						),
+    .stall_X2hl								(stall_X2hl						),
+    .stall_X3hl               (stall_X3hl           )
+	);
+
+  // Multiplier/Divider
+	
+	riscv_CoreDpathPipeMulDiv pmuldivv3
 	(
 	  .clk											(clk									),
     .reset										(reset								),

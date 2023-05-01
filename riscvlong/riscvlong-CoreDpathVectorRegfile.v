@@ -28,7 +28,10 @@ module riscv_CoreDpathVectorRegfile
   output [31:0] rdata1_1,  // Read 0 data (combinational on raddr)
   output [31:0] rdata1_2,  // Read 0 data (combinational on raddr)
   output [31:0] rdata1_3,  // Read 0 data (combinational on raddr)
-  input         wen_p,     // Write enable (sample on rising clk edge)
+  input         wen_p_0,     // Write enable (sample on rising clk edge)
+  input         wen_p_1,     // Write enable (sample on rising clk edge)
+  input         wen_p_2,     // Write enable (sample on rising clk edge)
+  input         wen_p_3,     // Write enable (sample on rising clk edge)
   input  [ 4:0] waddr_p,   // Write address (sample on rising clk edge)
   input  [ 5:0] widx_p,    // Read 0 address (combinational input)
   input  [31:0] wdata_p_0, // Write data (sample on rising clk edge)
@@ -54,10 +57,16 @@ module riscv_CoreDpathVectorRegfile
   // Write port is active only when wen is asserted
   always @( posedge clk )
   begin
-    if ( wen_p )
+    if ( wen_p_0 )
       registers[waddr_p][widx_p] <= wdata_p_0;
+
+    if ( wen_p_1 )
       registers[waddr_p][widx_p+1] <= wdata_p_1;
+
+    if ( wen_p_2 )
       registers[waddr_p][widx_p+2] <= wdata_p_2;
+
+    if ( wen_p_3s )
       registers[waddr_p][widx_p+3] <= wdata_p_3;
       
   end

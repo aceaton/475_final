@@ -57,6 +57,14 @@ module riscv_CoreCtrl
 	output				stall_X2hl,
 	output				stall_X3hl,
 
+  // VECTOR ADDED
+  output  [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  output  [1:0] v_lane_val, // idx of last used lane of the 4 lanes
+  output        v_wfrom_intermediate, // whether or not to write from the intermediate vector register in the case of acc
+  // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
+  output  [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
+	output  [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit
+
   // Control Signals (dpath->ctrl)
 
   input         branch_cond_eq_Xhl,
