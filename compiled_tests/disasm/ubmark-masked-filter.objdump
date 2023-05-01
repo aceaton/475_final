@@ -1,0 +1,297 @@
+
+./rvv-tools/../bin/ubmark-masked-filter:	file format elf32-littleriscv
+
+Disassembly of section .text:
+
+00010074 <main>:
+   10074: 13 01 01 9b  	addi	sp, sp, -1616
+   10078: 23 26 11 64  	sw	ra, 1612(sp)
+   1007c: 23 24 81 64  	sw	s0, 1608(sp)
+   10080: 23 22 91 64  	sw	s1, 1604(sp)
+   10084: 13 04 41 00  	addi	s0, sp, 4
+   10088: 13 05 41 00  	addi	a0, sp, 4
+   1008c: 13 06 00 64  	li	a2, 1600
+   10090: 93 04 00 64  	li	s1, 1600
+   10094: 93 05 00 00  	li	a1, 0
+   10098: ef 00 40 35  	jal	0x103ec <memset>
+   1009c: 13 00 10 00  	li	zero, 1
+   100a0: 73 10 a0 00  	csrw	vxrm, zero
+   100a4: 13 00 00 00  	nop
+   100a8: 13 00 00 00  	nop
+   100ac: 13 00 00 00  	nop
+   100b0: 13 00 00 00  	nop
+   100b4: 13 00 00 00  	nop
+   100b8: 37 15 01 00  	lui	a0, 17
+   100bc: 93 05 05 64  	addi	a1, a0, 1600
+   100c0: 37 15 01 00  	lui	a0, 17
+   100c4: 13 06 05 00  	mv	a2, a0
+   100c8: 37 25 01 00  	lui	a0, 18
+   100cc: 93 07 05 2c  	addi	a5, a0, 704
+   100d0: 13 05 41 00  	addi	a0, sp, 4
+   100d4: 93 06 40 01  	li	a3, 20
+   100d8: 13 07 40 01  	li	a4, 20
+   100dc: ef 00 00 0a  	jal	0x1017c <masked_filter_scalar>
+   100e0: 13 05 00 00  	li	a0, 0
+   100e4: 13 00 00 00  	nop
+   100e8: 73 10 a0 00  	csrw	vxrm, zero
+   100ec: 13 00 00 00  	nop
+   100f0: 13 00 00 00  	nop
+   100f4: 13 00 00 00  	nop
+   100f8: 13 00 00 00  	nop
+   100fc: 13 00 00 00  	nop
+   10100: b7 25 01 00  	lui	a1, 18
+   10104: 93 85 05 c8  	addi	a1, a1, -896
+   10108: 6f 00 c0 00  	j	0x10114 <main+0xa0>
+   1010c: 13 05 45 00  	addi	a0, a0, 4
+   10110: 63 0c 95 02  	beq	a0, s1, 0x10148 <main+0xd4>
+   10114: 33 06 a4 00  	add	a2, s0, a0
+   10118: 03 26 06 00  	lw	a2, 0(a2)
+   1011c: b3 06 b5 00  	add	a3, a0, a1
+   10120: 83 a6 06 00  	lw	a3, 0(a3)
+   10124: e3 04 d6 fe  	beq	a2, a3, 0x1010c <main+0x98>
+   10128: 13 00 20 00  	li	zero, 2
+   1012c: 73 10 50 01  	csrw	21, zero
+   10130: 13 00 00 00  	nop
+   10134: 13 00 00 00  	nop
+   10138: 13 00 00 00  	nop
+   1013c: 13 00 00 00  	nop
+   10140: 13 00 00 00  	nop
+   10144: 6f f0 9f fc  	j	0x1010c <main+0x98>
+   10148: 13 00 10 00  	li	zero, 1
+   1014c: 73 10 50 01  	csrw	21, zero
+   10150: 13 00 00 00  	nop
+   10154: 13 00 00 00  	nop
+   10158: 13 00 00 00  	nop
+   1015c: 13 00 00 00  	nop
+   10160: 13 00 00 00  	nop
+   10164: 13 05 00 00  	li	a0, 0
+   10168: 83 20 c1 64  	lw	ra, 1612(sp)
+   1016c: 03 24 81 64  	lw	s0, 1608(sp)
+   10170: 83 24 41 64  	lw	s1, 1604(sp)
+   10174: 13 01 01 65  	addi	sp, sp, 1616
+   10178: 67 80 00 00  	ret
+
+0001017c <masked_filter_scalar>:
+   1017c: 13 01 01 fb  	addi	sp, sp, -80
+   10180: 23 26 11 04  	sw	ra, 76(sp)
+   10184: 23 24 81 04  	sw	s0, 72(sp)
+   10188: 23 22 91 04  	sw	s1, 68(sp)
+   1018c: 23 20 21 05  	sw	s2, 64(sp)
+   10190: 23 2e 31 03  	sw	s3, 60(sp)
+   10194: 23 2c 41 03  	sw	s4, 56(sp)
+   10198: 23 2a 51 03  	sw	s5, 52(sp)
+   1019c: 23 28 61 03  	sw	s6, 48(sp)
+   101a0: 23 26 71 03  	sw	s7, 44(sp)
+   101a4: 23 24 81 03  	sw	s8, 40(sp)
+   101a8: 23 22 91 03  	sw	s9, 36(sp)
+   101ac: 23 20 a1 03  	sw	s10, 32(sp)
+   101b0: 23 2e b1 01  	sw	s11, 28(sp)
+   101b4: 93 04 30 00  	li	s1, 3
+   101b8: 23 26 e1 00  	sw	a4, 12(sp)
+   101bc: 63 ce 96 10  	blt	a3, s1, 0x102d8 <masked_filter_scalar+0x15c>
+   101c0: 03 a7 47 00  	lw	a4, 4(a5)
+   101c4: 83 a7 07 00  	lw	a5, 0(a5)
+   101c8: 23 2a 01 00  	sw	zero, 20(sp)
+   101cc: 23 2c e1 00  	sw	a4, 24(sp)
+   101d0: 13 17 27 00  	slli	a4, a4, 2
+   101d4: 13 8a 07 00  	mv	s4, a5
+   101d8: b3 0c f7 00  	add	s9, a4, a5
+   101dc: 93 86 f6 ff  	addi	a3, a3, -1
+   101e0: 23 24 d1 00  	sw	a3, 8(sp)
+   101e4: 03 27 c1 00  	lw	a4, 12(sp)
+   101e8: 93 06 e7 ff  	addi	a3, a4, -2
+   101ec: 23 20 d1 00  	sw	a3, 0(sp)
+   101f0: 93 16 37 00  	slli	a3, a4, 3
+   101f4: b3 86 c6 00  	add	a3, a3, a2
+   101f8: 93 8d 46 00  	addi	s11, a3, 4
+   101fc: 93 16 27 00  	slli	a3, a4, 2
+   10200: 93 04 46 00  	addi	s1, a2, 4
+   10204: 23 22 d1 00  	sw	a3, 4(sp)
+   10208: 93 86 46 00  	addi	a3, a3, 4
+   1020c: b3 8a d5 00  	add	s5, a1, a3
+   10210: 33 0c d6 00  	add	s8, a2, a3
+   10214: 33 09 d5 00  	add	s2, a0, a3
+   10218: 13 06 10 00  	li	a2, 1
+   1021c: 6f 00 40 02  	j	0x10240 <masked_filter_scalar+0xc4>
+   10220: 03 26 01 01  	lw	a2, 16(sp)
+   10224: 13 06 16 00  	addi	a2, a2, 1
+   10228: 03 25 41 01  	lw	a0, 20(sp)
+   1022c: 83 25 41 00  	lw	a1, 4(sp)
+   10230: 33 05 b5 00  	add	a0, a0, a1
+   10234: 23 2a a1 00  	sw	a0, 20(sp)
+   10238: 03 25 81 00  	lw	a0, 8(sp)
+   1023c: 63 0e a6 08  	beq	a2, a0, 0x102d8 <masked_filter_scalar+0x15c>
+   10240: 23 28 c1 00  	sw	a2, 16(sp)
+   10244: 13 05 30 00  	li	a0, 3
+   10248: 83 25 c1 00  	lw	a1, 12(sp)
+   1024c: e3 ca a5 fc  	blt	a1, a0, 0x10220 <masked_filter_scalar+0xa4>
+   10250: 03 2b 41 01  	lw	s6, 20(sp)
+   10254: 03 2d 01 00  	lw	s10, 0(sp)
+   10258: 6f 00 00 02  	j	0x10278 <masked_filter_scalar+0xfc>
+   1025c: 33 05 6c 01  	add	a0, s8, s6
+   10260: 03 25 05 00  	lw	a0, 0(a0)
+   10264: b3 05 69 01  	add	a1, s2, s6
+   10268: 23 a0 a5 00  	sw	a0, 0(a1)
+   1026c: 13 0d fd ff  	addi	s10, s10, -1
+   10270: 13 0b 4b 00  	addi	s6, s6, 4
+   10274: e3 06 0d fa  	beqz	s10, 0x10220 <masked_filter_scalar+0xa4>
+   10278: 33 85 6a 01  	add	a0, s5, s6
+   1027c: 03 25 05 00  	lw	a0, 0(a0)
+   10280: e3 0e 05 fc  	beqz	a0, 0x1025c <masked_filter_scalar+0xe0>
+   10284: 33 85 64 01  	add	a0, s1, s6
+   10288: 83 2b 05 00  	lw	s7, 0(a0)
+   1028c: 33 04 6c 01  	add	s0, s8, s6
+   10290: 83 29 c4 ff  	lw	s3, -4(s0)
+   10294: 03 25 04 00  	lw	a0, 0(s0)
+   10298: 93 05 0a 00  	mv	a1, s4
+   1029c: ef 00 80 07  	jal	0x10314 <__mulsi3>
+   102a0: 83 25 44 00  	lw	a1, 4(s0)
+   102a4: 33 86 6d 01  	add	a2, s11, s6
+   102a8: 03 26 06 00  	lw	a2, 0(a2)
+   102ac: 13 04 05 00  	mv	s0, a0
+   102b0: 33 85 79 01  	add	a0, s3, s7
+   102b4: 33 05 b5 00  	add	a0, a0, a1
+   102b8: 33 05 c5 00  	add	a0, a0, a2
+   102bc: 83 25 81 01  	lw	a1, 24(sp)
+   102c0: ef 00 40 05  	jal	0x10314 <__mulsi3>
+   102c4: 33 05 85 00  	add	a0, a0, s0
+   102c8: 93 85 0c 00  	mv	a1, s9
+   102cc: ef 00 40 07  	jal	0x10340 <__udivsi3>
+   102d0: 13 75 f5 0f  	andi	a0, a0, 255
+   102d4: 6f f0 1f f9  	j	0x10264 <masked_filter_scalar+0xe8>
+   102d8: 83 20 c1 04  	lw	ra, 76(sp)
+   102dc: 03 24 81 04  	lw	s0, 72(sp)
+   102e0: 83 24 41 04  	lw	s1, 68(sp)
+   102e4: 03 29 01 04  	lw	s2, 64(sp)
+   102e8: 83 29 c1 03  	lw	s3, 60(sp)
+   102ec: 03 2a 81 03  	lw	s4, 56(sp)
+   102f0: 83 2a 41 03  	lw	s5, 52(sp)
+   102f4: 03 2b 01 03  	lw	s6, 48(sp)
+   102f8: 83 2b c1 02  	lw	s7, 44(sp)
+   102fc: 03 2c 81 02  	lw	s8, 40(sp)
+   10300: 83 2c 41 02  	lw	s9, 36(sp)
+   10304: 03 2d 01 02  	lw	s10, 32(sp)
+   10308: 83 2d c1 01  	lw	s11, 28(sp)
+   1030c: 13 01 01 05  	addi	sp, sp, 80
+   10310: 67 80 00 00  	ret
+
+00010314 <__mulsi3>:
+   10314: 13 06 05 00  	mv	a2, a0
+   10318: 13 05 00 00  	li	a0, 0
+   1031c: 93 f6 15 00  	andi	a3, a1, 1
+   10320: 63 84 06 00  	beqz	a3, 0x10328 <__mulsi3+0x14>
+   10324: 33 05 c5 00  	add	a0, a0, a2
+   10328: 93 d5 15 00  	srli	a1, a1, 1
+   1032c: 13 16 16 00  	slli	a2, a2, 1
+   10330: e3 96 05 fe  	bnez	a1, 0x1031c <__mulsi3+0x8>
+   10334: 67 80 00 00  	ret
+
+00010338 <__divsi3>:
+   10338: 63 40 05 06  	bltz	a0, 0x10398 <__umodsi3+0x10>
+   1033c: 63 c6 05 06  	bltz	a1, 0x103a8 <__umodsi3+0x20>
+
+00010340 <__udivsi3>:
+   10340: 13 86 05 00  	mv	a2, a1
+   10344: 93 05 05 00  	mv	a1, a0
+   10348: 13 05 f0 ff  	li	a0, -1
+   1034c: 63 0c 06 02  	beqz	a2, 0x10384 <__udivsi3+0x44>
+   10350: 93 06 10 00  	li	a3, 1
+   10354: 63 7a b6 00  	bgeu	a2, a1, 0x10368 <__udivsi3+0x28>
+   10358: 63 58 c0 00  	blez	a2, 0x10368 <__udivsi3+0x28>
+   1035c: 13 16 16 00  	slli	a2, a2, 1
+   10360: 93 96 16 00  	slli	a3, a3, 1
+   10364: e3 6a b6 fe  	bltu	a2, a1, 0x10358 <__udivsi3+0x18>
+   10368: 13 05 00 00  	li	a0, 0
+   1036c: 63 e6 c5 00  	bltu	a1, a2, 0x10378 <__udivsi3+0x38>
+   10370: b3 85 c5 40  	sub	a1, a1, a2
+   10374: 33 65 d5 00  	or	a0, a0, a3
+   10378: 93 d6 16 00  	srli	a3, a3, 1
+   1037c: 13 56 16 00  	srli	a2, a2, 1
+   10380: e3 96 06 fe  	bnez	a3, 0x1036c <__udivsi3+0x2c>
+   10384: 67 80 00 00  	ret
+
+00010388 <__umodsi3>:
+   10388: 93 82 00 00  	mv	t0, ra
+   1038c: ef f0 5f fb  	jal	0x10340 <__udivsi3>
+   10390: 13 85 05 00  	mv	a0, a1
+   10394: 67 80 02 00  	jr	t0
+   10398: 33 05 a0 40  	neg	a0, a0
+   1039c: 63 d8 05 00  	bgez	a1, 0x103ac <__umodsi3+0x24>
+   103a0: b3 05 b0 40  	neg	a1, a1
+   103a4: 6f f0 df f9  	j	0x10340 <__udivsi3>
+   103a8: b3 05 b0 40  	neg	a1, a1
+   103ac: 93 82 00 00  	mv	t0, ra
+   103b0: ef f0 1f f9  	jal	0x10340 <__udivsi3>
+   103b4: 33 05 a0 40  	neg	a0, a0
+   103b8: 67 80 02 00  	jr	t0
+
+000103bc <__modsi3>:
+   103bc: 93 82 00 00  	mv	t0, ra
+   103c0: 63 ca 05 00  	bltz	a1, 0x103d4 <__modsi3+0x18>
+   103c4: 63 4c 05 00  	bltz	a0, 0x103dc <__modsi3+0x20>
+   103c8: ef f0 9f f7  	jal	0x10340 <__udivsi3>
+   103cc: 13 85 05 00  	mv	a0, a1
+   103d0: 67 80 02 00  	jr	t0
+   103d4: b3 05 b0 40  	neg	a1, a1
+   103d8: e3 58 05 fe  	bgez	a0, 0x103c8 <__modsi3+0xc>
+   103dc: 33 05 a0 40  	neg	a0, a0
+   103e0: ef f0 1f f6  	jal	0x10340 <__udivsi3>
+   103e4: 33 05 b0 40  	neg	a0, a1
+   103e8: 67 80 02 00  	jr	t0
+
+000103ec <memset>:
+   103ec: 13 08 f0 00  	li	a6, 15
+   103f0: 13 07 05 00  	mv	a4, a0
+   103f4: 63 7e c8 02  	bgeu	a6, a2, 0x10430 <memset+0x44>
+   103f8: 93 77 f7 00  	andi	a5, a4, 15
+   103fc: 63 90 07 0a  	bnez	a5, 0x1049c <memset+0xb0>
+   10400: 63 92 05 08  	bnez	a1, 0x10484 <memset+0x98>
+   10404: 93 76 06 ff  	andi	a3, a2, -16
+   10408: 13 76 f6 00  	andi	a2, a2, 15
+   1040c: b3 86 e6 00  	add	a3, a3, a4
+   10410: 23 20 b7 00  	sw	a1, 0(a4)
+   10414: 23 22 b7 00  	sw	a1, 4(a4)
+   10418: 23 24 b7 00  	sw	a1, 8(a4)
+   1041c: 23 26 b7 00  	sw	a1, 12(a4)
+   10420: 13 07 07 01  	addi	a4, a4, 16
+   10424: e3 66 d7 fe  	bltu	a4, a3, 0x10410 <memset+0x24>
+   10428: 63 14 06 00  	bnez	a2, 0x10430 <memset+0x44>
+   1042c: 67 80 00 00  	ret
+   10430: b3 06 c8 40  	sub	a3, a6, a2
+   10434: 93 96 26 00  	slli	a3, a3, 2
+   10438: 97 02 00 00  	auipc	t0, 0
+   1043c: b3 86 56 00  	add	a3, a3, t0
+   10440: 67 80 c6 00  	jr	12(a3)
+   10444: 23 07 b7 00  	sb	a1, 14(a4)
+   10448: a3 06 b7 00  	sb	a1, 13(a4)
+   1044c: 23 06 b7 00  	sb	a1, 12(a4)
+   10450: a3 05 b7 00  	sb	a1, 11(a4)
+   10454: 23 05 b7 00  	sb	a1, 10(a4)
+   10458: a3 04 b7 00  	sb	a1, 9(a4)
+   1045c: 23 04 b7 00  	sb	a1, 8(a4)
+   10460: a3 03 b7 00  	sb	a1, 7(a4)
+   10464: 23 03 b7 00  	sb	a1, 6(a4)
+   10468: a3 02 b7 00  	sb	a1, 5(a4)
+   1046c: 23 02 b7 00  	sb	a1, 4(a4)
+   10470: a3 01 b7 00  	sb	a1, 3(a4)
+   10474: 23 01 b7 00  	sb	a1, 2(a4)
+   10478: a3 00 b7 00  	sb	a1, 1(a4)
+   1047c: 23 00 b7 00  	sb	a1, 0(a4)
+   10480: 67 80 00 00  	ret
+   10484: 93 f5 f5 0f  	andi	a1, a1, 255
+   10488: 93 96 85 00  	slli	a3, a1, 8
+   1048c: b3 e5 d5 00  	or	a1, a1, a3
+   10490: 93 96 05 01  	slli	a3, a1, 16
+   10494: b3 e5 d5 00  	or	a1, a1, a3
+   10498: 6f f0 df f6  	j	0x10404 <memset+0x18>
+   1049c: 93 96 27 00  	slli	a3, a5, 2
+   104a0: 97 02 00 00  	auipc	t0, 0
+   104a4: b3 86 56 00  	add	a3, a3, t0
+   104a8: 93 82 00 00  	mv	t0, ra
+   104ac: e7 80 06 fa  	jalr	-96(a3)
+   104b0: 93 80 02 00  	mv	ra, t0
+   104b4: 93 87 07 ff  	addi	a5, a5, -16
+   104b8: 33 07 f7 40  	sub	a4, a4, a5
+   104bc: 33 06 f6 00  	add	a2, a2, a5
+   104c0: e3 78 c8 f6  	bgeu	a6, a2, 0x10430 <memset+0x44>
+   104c4: 6f f0 df f3  	j	0x10400 <memset+0x14>
