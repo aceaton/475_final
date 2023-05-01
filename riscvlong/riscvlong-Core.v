@@ -37,6 +37,35 @@ module riscv_Core
   input [`VC_MEM_RESP_MSG_SZ(32)-1:0] dmemresp_msg,
   input                               dmemresp_val,
 
+  // Data Memory Request Port vector 
+  output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_0,
+  output                                 v_dmemreq_val_0,
+  input                                  v_dmemreq_rdy_0,
+  // Data Memory Response Port vector
+  input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_0,
+  input                               v_dmemresp_val_0,
+  // Data Memory Request Port vector 
+  output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_1,
+  output                                 v_dmemreq_val_1,
+  input                                  v_dmemreq_rdy_1,
+  // Data Memory Response Port vector
+  input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_1,
+  input                               v_dmemresp_val_1,
+    // Data Memory Request Port vector 
+  output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_2,
+  output                                 v_dmemreq_val_2,
+  input                                  v_dmemreq_rdy_2,
+  // Data Memory Response Port vector
+  input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_2,
+  input                               v_dmemresp_val_2,
+    // Data Memory Request Port vector 
+  output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_3,
+  output                                 v_dmemreq_val_3,
+  input                                  v_dmemreq_rdy_3,
+  // Data Memory Response Port vector
+  input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_3,
+  input                               v_dmemresp_val_3,
+
   // CSR Status Register Output to Host
 
   output [31:0] csr_status
@@ -50,6 +79,28 @@ module riscv_Core
   wire [31:0] dmemreq_msg_addr;
   wire [31:0] dmemreq_msg_data;
   wire [31:0] dmemresp_msg_data;
+  // vec
+  wire        v_dmemreq_msg_rw_0;
+  wire  [1:0] v_dmemreq_msg_len_0;
+  wire [31:0] v_dmemreq_msg_addr_0;
+  wire [31:0] v_dmemreq_msg_data_0;
+  wire [31:0] v_dmemresp_msg_data_0;
+  wire        v_dmemreq_msg_rw_1;
+  wire  [1:1] v_dmemreq_msg_len_1;
+  wire [31:1] v_dmemreq_msg_addr_1;
+  wire [31:1] v_dmemreq_msg_data_1;
+  wire [31:1] v_dmemresp_msg_data_1;
+  wire        v_dmemreq_msg_rw_2;
+  wire  [1:2] v_dmemreq_msg_len_2;
+  wire [31:2] v_dmemreq_msg_addr_2;
+  wire [31:2] v_dmemreq_msg_data_2;
+  wire [31:2] v_dmemresp_msg_data_2;
+  wire        v_dmemreq_msg_rw_3;
+  wire  [1:3] v_dmemreq_msg_len_3;
+  wire [31:3] v_dmemreq_msg_addr_3;
+  wire [31:3] v_dmemreq_msg_data_3;
+  wire [31:3] v_dmemresp_msg_data_3;
+  
 
   wire  [1:0] pc_mux_sel_Phl;
   wire  [1:0] op0_mux_sel_Dhl;
@@ -109,6 +160,40 @@ module riscv_Core
     .data (dmemreq_msg_data),
     .bits (dmemreq_msg)
   );
+  //vec
+  vc_MemReqMsgToBits#(32,32) v_dmemreq_msg_to_bits_0
+  (
+    .type (v_dmemreq_msg_rw_0),
+    .addr (v_dmemreq_msg_addr_0),
+    .len  (v_dmemreq_msg_len_0),
+    .data (v_dmemreq_msg_data_0),
+    .bits (v_dmemreq_msg_0)
+  );
+  vc_MemReqMsgToBits#(32,32) v_dmemreq_msg_to_bits_1
+  (
+    .type (v_dmemreq_msg_rw_1),
+    .addr (v_dmemreq_msg_addr_1),
+    .len  (v_dmemreq_msg_len_1),
+    .data (v_dmemreq_msg_data_1),
+    .bits (v_dmemreq_msg_1)
+  );
+  vc_MemReqMsgToBits#(32,32) v_dmemreq_msg_to_bits_2
+  (
+    .type (v_dmemreq_msg_rw_2),
+    .addr (v_dmemreq_msg_addr_2),
+    .len  (v_dmemreq_msg_len_2),
+    .data (v_dmemreq_msg_data_2),
+    .bits (v_dmemreq_msg_2)
+  );
+  vc_MemReqMsgToBits#(32,32) v_dmemreq_msg_to_bits_3
+  (
+    .type (v_dmemreq_msg_rw_3),
+    .addr (v_dmemreq_msg_addr_3),
+    .len  (v_dmemreq_msg_len_3),
+    .data (v_dmemreq_msg_data_3),
+    .bits (v_dmemreq_msg_3)
+  );
+  
 
   //----------------------------------------------------------------------
   // Unpack Memory Response Messages
@@ -128,6 +213,35 @@ module riscv_Core
     .type (),
     .len  (),
     .data (dmemresp_msg_data)
+  );
+  //vec
+  vc_MemRespMsgFromBits#(32) v_dmemresp_msg_from_bits_0
+  (
+    .bits (v_dmemresp_msg_0),
+    .type (),
+    .len  (),
+    .data (v_dmemresp_msg_data_0)
+  );
+  vc_MemRespMsgFromBits#(32) v_dmemresp_msg_from_bits_1
+  (
+    .bits (v_dmemresp_msg_1),
+    .type (),
+    .len  (),
+    .data (v_dmemresp_msg_data_1)
+  );
+  vc_MemRespMsgFromBits#(32) v_dmemresp_msg_from_bits_2
+  (
+    .bits (v_dmemresp_msg_2),
+    .type (),
+    .len  (),
+    .data (v_dmemresp_msg_data_2)
+  );
+  vc_MemRespMsgFromBits#(32) v_dmemresp_msg_from_bits_3
+  (
+    .bits (v_dmemresp_msg_3),
+    .type (),
+    .len  (),
+    .data (v_dmemresp_msg_data_3)
   );
 
   //----------------------------------------------------------------------
@@ -153,6 +267,27 @@ module riscv_Core
     .dmemreq_val            (dmemreq_val),
     .dmemreq_rdy            (dmemreq_rdy),
     .dmemresp_val           (dmemresp_val),
+    //vec
+    .v_dmemreq_msg_rw_0         (v_dmemreq_msg_rw_0),
+    .v_dmemreq_msg_len_0        (v_dmemreq_msg_len_0),
+    .v_dmemreq_val_0            (v_dmemreq_val_0),
+    .v_dmemreq_rdy_0            (v_dmemreq_rdy_0),
+    .v_dmemresp_val_0           (v_dmemresp_val_0),
+    .v_dmemreq_msg_rw_1         (v_dmemreq_msg_rw_1),
+    .v_dmemreq_msg_len_1        (v_dmemreq_msg_len_1),
+    .v_dmemreq_val_1            (v_dmemreq_val_1),
+    .v_dmemreq_rdy_1            (v_dmemreq_rdy_1),
+    .v_dmemresp_val_1           (v_dmemresp_val_1),
+    .v_dmemreq_msg_rw_2         (v_dmemreq_msg_rw_2),
+    .v_dmemreq_msg_len_2        (v_dmemreq_msg_len_2),
+    .v_dmemreq_val_2            (v_dmemreq_val_2),
+    .v_dmemreq_rdy_2            (v_dmemreq_rdy_2),
+    .v_dmemresp_val_2           (v_dmemresp_val_2),
+    .v_dmemreq_msg_rw_3         (v_dmemreq_msg_rw_3),
+    .v_dmemreq_msg_len_3        (v_dmemreq_msg_len_3),
+    .v_dmemreq_val_3            (v_dmemreq_val_3),
+    .v_dmemreq_rdy_3            (v_dmemreq_rdy_3),
+    .v_dmemresp_val_3           (v_dmemresp_val_3),
 
     // Controls Signals (ctrl->dpath)
 
@@ -218,6 +353,20 @@ module riscv_Core
     .dmemreq_msg_addr        (dmemreq_msg_addr),
     .dmemreq_msg_data        (dmemreq_msg_data),
     .dmemresp_msg_data       (dmemresp_msg_data),
+    //vec
+    .v_dmemreq_msg_addr_0        (v_dmemreq_msg_addr_0),
+    .v_dmemreq_msg_data_0        (v_dmemreq_msg_data_0),
+    .v_dmemresp_msg_data_0       (v_dmemresp_msg_data_0),
+    .v_dmemreq_msg_addr_1        (v_dmemreq_msg_addr_1),
+    .v_dmemreq_msg_data_1        (v_dmemreq_msg_data_1),
+    .v_dmemresp_msg_data_1       (v_dmemresp_msg_data_1),
+    .v_dmemreq_msg_addr_2        (v_dmemreq_msg_addr_2),
+    .v_dmemreq_msg_data_2        (v_dmemreq_msg_data_2),
+    .v_dmemresp_msg_data_2       (v_dmemresp_msg_data_2),
+    .v_dmemreq_msg_addr_3        (v_dmemreq_msg_addr_3),
+    .v_dmemreq_msg_data_3        (v_dmemreq_msg_data_3),
+    .v_dmemresp_msg_data_3       (v_dmemresp_msg_data_3),
+
 
     // Controls Signals (ctrl->dpath)
 

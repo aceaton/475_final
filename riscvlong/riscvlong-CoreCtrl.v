@@ -25,6 +25,27 @@ module riscv_CoreCtrl
   output        dmemreq_val,
   input         dmemreq_rdy,
   input         dmemresp_val,
+  //vec
+  output        v_dmemreq_msg_rw_0,
+  output  [1:0] v_dmemreq_msg_len_0,
+  output        v_dmemreq_val_0,
+  input         v_dmemreq_rdy_0,
+  input         v_dmemresp_val_0,
+  output        v_dmemreq_msg_rw_1,
+  output  [1:0] v_dmemreq_msg_len_1,
+  output        v_dmemreq_val_1,
+  input         v_dmemreq_rdy_1,
+  input         v_dmemresp_val_1,
+  output        v_dmemreq_msg_rw_2,
+  output  [1:0] v_dmemreq_msg_len_2,
+  output        v_dmemreq_val_2,
+  input         v_dmemreq_rdy_2,
+  input         v_dmemresp_val_2,
+  output        v_dmemreq_msg_rw_3,
+  output  [1:0] v_dmemreq_msg_len_3,
+  output        v_dmemreq_val_3,
+  input         v_dmemreq_rdy_3,
+  input         v_dmemresp_val_3,
 
   // Controls Signals (ctrl->dpath)
 
@@ -64,6 +85,7 @@ module riscv_CoreCtrl
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
   output  [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
 	output  [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
+  output        v_isvec_Dhl,
 
   // Control Signals (dpath->ctrl)
 

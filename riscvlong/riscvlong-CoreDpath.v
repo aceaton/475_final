@@ -26,6 +26,23 @@ module riscv_CoreDpath
   output [31:0] dmemreq_msg_data,
   input  [31:0] dmemresp_msg_data,
 
+  // vector mem ports
+  output [31:0] v_dmemreq_msg_addr_0,
+  output [31:0] v_dmemreq_msg_data_0,
+  input  [31:0] v_dmemresp_msg_data_0,
+
+  output [31:0] v_dmemreq_msg_addr_1,
+  output [31:0] v_dmemreq_msg_data_1,
+  input  [31:0] v_dmemresp_msg_data_1,
+
+  output [31:0] v_dmemreq_msg_addr_2,
+  output [31:0] v_dmemreq_msg_data_2,
+  input  [31:0] v_dmemresp_msg_data_2,
+
+  output [31:0] v_dmemreq_msg_addr_3,
+  output [31:0] v_dmemreq_msg_data_3,
+  input  [31:0] v_dmemresp_msg_data_3,
+
   // Controls Signals (ctrl->dpath)
 
   input   [1:0] pc_mux_sel_Phl,
@@ -40,9 +57,9 @@ module riscv_CoreDpath
   input         muldivresp_rdy,
   input         muldiv_mux_sel_X3hl,
   input         execute_mux_sel_X3hl,
-  input   [2:0] dmemresp_mux_sel_Mhl,
-  input         dmemresp_queue_en_Mhl,
-  input         dmemresp_queue_val_Mhl,
+  input   [2:0] dmemresp_mux_sel_Mhl, // vec? nah this is decoded same from instr for vec and regular?
+  input         dmemresp_queue_en_Mhl, // needs own
+  input         dmemresp_queue_val_Mhl, // needs own
   input         wb_mux_sel_Mhl,
   input         rf_wen_Whl,
   input  [ 4:0] rf_waddr_Whl,
@@ -56,6 +73,17 @@ module riscv_CoreDpath
 
 	input					stall_X2hl,
 	input					stall_X3hl,
+
+  // VECTOR ADDED
+  input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  input   [1:0] v_lanes_Whl, // idx of last used lane of the 4 lanes - also even needed? for writeout ig
+  input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
+  // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
+  input   [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
+	input   [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
+  input         v_isvec_Whl, // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
+  // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
+  // meoryyy stuff
 
   // Control Signals (dpath->ctrl)
 
@@ -172,6 +200,10 @@ module riscv_CoreDpath
   wire [ 4:0] rf_raddr1_Dhl = inst_rs2_Dhl;
   wire [31:0] rf_rdata1_Dhl;
 
+  // VECTOR register file
+  wire [127:0] v_rf_rdata0_Dhl;
+  wire [127:0] v_rf_rdata1_Dhl;
+
   // Jump reg address
 
   wire [31:0] jumpreg_targ_Dhl;
@@ -207,25 +239,27 @@ module riscv_CoreDpath
 		: ( rdata1_byp_mux_sel_Dhl == 3'd5 ) ? wb_mux_out_Whl
 		:																			 32'bx;	
 
-	// // vector rdata0 bypass
-	// wire [31:0] rdata0_byp_mux_out_Dhl
-	// 	= ( rdata0_byp_mux_sel_Dhl == 3'd0 ) ? rf_rdata0_Dhl
-	// 	: ( rdata0_byp_mux_sel_Dhl == 3'd1 ) ? execute_mux_out_Xhl
-	//   : ( rdata0_byp_mux_sel_Dhl == 3'd2 ) ? wb_mux_out_Mhl
-	//   : ( rdata0_byp_mux_sel_Dhl == 3'd3 ) ? wb_mux_out_X2hl
-	// 	: ( rdata0_byp_mux_sel_Dhl == 3'd4 ) ? execute_mux_out_X3hl
-	// 	: ( rdata0_byp_mux_sel_Dhl == 3'd5 ) ? wb_mux_out_Whl
-	// 	:																			 32'bx;	
+	// vector rdata0 bypass
+	wire [127:0] v_rdata0_byp_mux_out_Dhl
+		= ( v_rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata0_Dhl
+		: ( v_rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
+	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
+	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
+		: ( v_rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
+		: ( v_rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+    : ( v_rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
+		:																			 128'bx;	
 
-	// // vector rdata1 bypass
-	// wire [31:0] rdata1_byp_mux_out_Dhl
-	// 	= ( rdata1_byp_mux_sel_Dhl == 3'd0 ) ? rf_rdata1_Dhl
-	// 	: ( rdata1_byp_mux_sel_Dhl == 3'd1 ) ? execute_mux_out_Xhl
-	//   : ( rdata1_byp_mux_sel_Dhl == 3'd2 ) ? wb_mux_out_Mhl
-	//   : ( rdata1_byp_mux_sel_Dhl == 3'd3 ) ? wb_mux_out_X2hl
-	// 	: ( rdata1_byp_mux_sel_Dhl == 3'd4 ) ? execute_mux_out_X3hl
-	// 	: ( rdata1_byp_mux_sel_Dhl == 3'd5 ) ? wb_mux_out_Whl
-	// 	:																			 32'bx;	
+  // vector rdata0 bypass
+	wire [127:0] v_rdata1_byp_mux_out_Dhl
+		= ( v_rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata1_Dhl
+		: ( v_rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
+	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
+	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
+		: ( v_rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
+		: ( v_rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+    : ( v_rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
+		:																			 128'bx;	
 
   // Operand 0 mux
 
@@ -248,9 +282,9 @@ module riscv_CoreDpath
     : ( op1_mux_sel_Dhl == 3'd6 ) ? const0
     :                               32'bx;
 
-    
-// VECTOR
-  //     wire [31:0] op0_mux_out_Dhl
+  //   // Operand 0 mux
+
+  // wire [31:0] op0_mux_out_Dhl
   //   = ( op0_mux_sel_Dhl == 2'd0 ) ? rdata0_byp_mux_out_Dhl
   //   : ( op0_mux_sel_Dhl == 2'd1 ) ? pc_Dhl
   //   : ( op0_mux_sel_Dhl == 2'd2 ) ? pc_plus4_Dhl
@@ -269,9 +303,20 @@ module riscv_CoreDpath
   //   : ( op1_mux_sel_Dhl == 3'd6 ) ? const0
   //   :                               32'bx;
 
+    
+  // VECTOR dont have more muxes cuz we dont need anything other than the bypass mux sel, we're not adding vector immediates
+  // WAIT yeah it does but just for addresses for mem - > figure that tf out ahadkfalkdjs 
+
   // wdata with bypassing
 
   wire [31:0] wdata_Dhl = rdata1_byp_mux_out_Dhl;
+
+  wire [127:0] v_wdata_Dhl = v_rdata1_byp_mux_out_Dhl;
+  // sorry ignore the following, this needs to know which op to take to write to memroy 
+
+
+  // hmmm not really sure exactly why they set it to the second argument because it's never maintained unless the alu doens't write out
+  // if you understand this explain it to me bc i hope it's not wrong (-anna)
 
   //----------------------------------------------------------------------
   // X <- D
@@ -282,6 +327,9 @@ module riscv_CoreDpath
   reg [31:0] op0_mux_out_Xhl;
   reg [31:0] op1_mux_out_Xhl;
   reg [31:0] wdata_Xhl;
+  reg [127:0] v_op0_mux_out_Xhl;
+  reg [127:0] v_op0_mux_out_Xhl;
+  reg [127:0] v_wdata_Xhl;
 
   always @ (posedge clk) begin
     if( !stall_Xhl ) begin
@@ -290,6 +338,11 @@ module riscv_CoreDpath
       op0_mux_out_Xhl <= op0_mux_out_Dhl;
       op1_mux_out_Xhl <= op1_mux_out_Dhl;
       wdata_Xhl       <= wdata_Dhl;
+      // v_op0_mux_out_Xhl <= v_rdata0_byp_mux_out_Dhl;
+      // v_op1_mux_out_Xhl <= v_rdata1_byp_mux_out_Dhl;
+      v_op0_mux_out_Xhl <= v_op0_mux_out_Dhl;
+      v_op1_mux_out_Xhl <= v_op1_mux_out_Dhl;
+      v_wdata_Xhl <= v_wdata_Dhl;
     end
   end
 
@@ -300,6 +353,9 @@ module riscv_CoreDpath
   // ALU
 
   wire [31:0] alu_out_Xhl;
+
+  // vector alu
+  wire [127:0] v_alu_out_Xhl;
 
   // Branch condition logic
 
@@ -314,9 +370,20 @@ module riscv_CoreDpath
   // Send out memory request during X, response returns in M
 
   assign dmemreq_msg_addr = alu_out_Xhl;
-  assign dmemreq_msg_data = wdata_Xhl;
+  assign dmemreq_msg_data = wdata_Xhl; // effectively is this writing to wdata? shouldnt it be the response? or like it's wdata that's being stored
+  // VECTOR stuff?? 
+  // assign v_dmemreq_msg_addr = skdjldsak stride????
+  assign v_dmemreq_msg_addr_0 = v_alu_out_Xhl[31:0];
+  assign v_dmemreq_msg_data_0 = v_wdata_Xhl[31:0];
+  assign v_dmemreq_msg_addr_1 = v_alu_out_Xhl[63:32];
+  assign v_dmemreq_msg_data_1 = v_wdata_Xhl[63:32];
+  assign v_dmemreq_msg_addr_2 = v_alu_out_Xhl[95:64];
+  assign v_dmemreq_msg_data_2 = v_wdata_Xhl[95:64];
+  assign v_dmemreq_msg_addr_3 = v_alu_out_Xhl[127:96];
+  assign v_dmemreq_msg_data_3 = v_wdata_Xhl[127:96];
 
   wire [31:0] execute_mux_out_Xhl = alu_out_Xhl;
+  wire [127:0] v_execute_mux_out_Xhl = v_alu_out_Xhl;
 
  
   //----------------------------------------------------------------------
@@ -326,18 +393,24 @@ module riscv_CoreDpath
   reg  [31:0] pc_Mhl;
   reg  [31:0] execute_mux_out_Mhl;
   reg  [31:0] wdata_Mhl;
+  reg  [127:0] v_execute_mux_out_Mhl;
+  reg  [127:0] v_wdata_Mhl;
 
   always @ (posedge clk) begin
     if( !stall_Mhl ) begin
       pc_Mhl              <= pc_Xhl;
       execute_mux_out_Mhl <= execute_mux_out_Xhl;
       wdata_Mhl           <= wdata_Xhl;
+      v_execute_mux_out_Mhl <= v_execute_mux_out_Xhl;
+      v_wdata_Mhl           <= v_wdata_Xhl;
     end
   end
 
   //----------------------------------------------------------------------
   // Memory Stage
   //----------------------------------------------------------------------
+
+  // to do: copy the following stuff for vector mem: VECTOR FIX
 
   // Data memory subword adjustment mux
 
@@ -366,6 +439,10 @@ module riscv_CoreDpath
   //----------------------------------------------------------------------
 
   reg [31:0] dmemresp_queue_reg_Mhl;
+  reg [31:0] v_dmemresp_queue_reg_0_Mhl;
+  reg [31:0] v_dmemresp_queue_reg_2_Mhl;
+  reg [31:0] v_dmemresp_queue_reg_1_Mhl;
+  reg [31:0] v_dmemresp_queue_reg_3_Mhl;
 
   always @ ( posedge clk ) begin
     if ( dmemresp_queue_en_Mhl ) begin
@@ -373,10 +450,41 @@ module riscv_CoreDpath
     end
   end
 
+  //vec
+  reg [31:0] v_dmemresp_queue_reg_0_Mhl;
+  always @ ( posedge clk ) begin
+    if ( v_dmemresp_queue_en_0_Mhl ) begin
+      v_dmemresp_queue_reg_0_Mhl <= v_dmemresp_mux_out_0_Mhl;
+    end
+  end
+  reg [31:0] v_dmemresp_queue_reg_1_Mhl;
+  always @ ( posedge clk ) begin
+    if ( v_dmemresp_queue_en_1_Mhl ) begin
+      v_dmemresp_queue_reg_1_Mhl <= v_dmemresp_mux_out_1_Mhl;
+    end
+  end
+  reg [31:2] v_dmemresp_queue_reg_2_Mhl;
+  always @ ( posedge clk ) begin
+    if ( v_dmemresp_queue_en_2_Mhl ) begin
+      v_dmemresp_queue_reg_2_Mhl <= v_dmemresp_mux_out_2_Mhl;
+    end
+  end
+  reg [31:3] v_dmemresp_queue_reg_3_Mhl;
+  always @ ( posedge clk ) begin
+    if ( v_dmemresp_queue_en_3_Mhl ) begin
+      v_dmemresp_queue_reg_3_Mhl <= v_dmemresp_mux_out_3_Mhl;
+    end
+  end
+
   //----------------------------------------------------------------------
   // Data memory queue mux
   //----------------------------------------------------------------------
 
+  wire [31:0] dmemresp_queue_mux_out_Mhl
+    = ( !dmemresp_queue_val_Mhl ) ? dmemresp_mux_out_Mhl
+    : ( dmemresp_queue_val_Mhl )  ? dmemresp_queue_reg_Mhl
+    :                               32'bx;
+  //vec 
   wire [31:0] dmemresp_queue_mux_out_Mhl
     = ( !dmemresp_queue_val_Mhl ) ? dmemresp_mux_out_Mhl
     : ( dmemresp_queue_val_Mhl )  ? dmemresp_queue_reg_Mhl
@@ -390,6 +498,12 @@ module riscv_CoreDpath
     = ( wb_mux_sel_Mhl == 1'd0 ) ? execute_mux_out_Mhl
     : ( wb_mux_sel_Mhl == 1'd1 ) ? dmemresp_queue_mux_out_Mhl
     :                              32'bx;
+
+  wire [31:0] wb_mux_out_Mhl
+    = ( wb_mux_sel_Mhl == 1'd0 ) ? execute_mux_out_Mhl
+    : ( wb_mux_sel_Mhl == 1'd1 ) ? dmemresp_queue_mux_out_Mhl
+    :                              32'bx;
+  
 
 	//----------------------------------------------------------------------
   // X2 <- M
