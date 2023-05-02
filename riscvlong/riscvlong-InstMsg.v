@@ -221,7 +221,10 @@
 // Control bundle
 //------------------------------------------------------------------------
 
-`define RISCV_INST_MSG_CS_SZ      39
+`define RISCV_INST_MSG_IS_VOP     42:42
+`define RISCV_INST_MSG_IS_VSTORE  41:41
+`define RISCV_INST_MSG_IS_VCONF   40:40
+`define RISCV_INST_MSG_CS_SZ      39:39
 `define RISCV_INST_MSG_INST_VAL   38:38
 `define RISCV_INST_MSG_J_EN       37:37
 `define RISCV_INST_MSG_BR_SEL     36:34
