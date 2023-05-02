@@ -320,7 +320,7 @@ module riscv_CoreDpath
 
   wire [127:0] v_op1_mux_out_Dhl
     = ( v_op1_mux_sel_Dhl == 2'd0 ) ? v_rdata1_byp_mux_out_Dhl
-    : ( v_op1_mux_sel_Dhl == 2'd1 ) ? {v_off0_Dhl,v_off1_Dhl,v_off2_Dhl,v_off3_Dhl}
+    : ( v_op1_mux_sel_Dhl == 2'd1 ) ? {v_off3_Dhl,v_off2_Dhl,v_off1_Dhl,v_off0_Dhl}
     : ( v_op1_mux_sel_Dhl == 2'd2 ) ? {const0,const0,const0,const0}
     :                               128'bx;
 
@@ -437,16 +437,12 @@ module riscv_CoreDpath
 
   wire [31:0] dmemresp_lb_Mhl
     = { {24{dmemresp_msg_data[7]}}, dmemresp_msg_data[7:0] };
-
   wire [31:0] dmemresp_lbu_Mhl
     = { {24{1'b0}}, dmemresp_msg_data[7:0] };
-
   wire [31:0] dmemresp_lh_Mhl
     = { {16{dmemresp_msg_data[15]}}, dmemresp_msg_data[15:0] };
-
   wire [31:0] dmemresp_lhu_Mhl
     = { {16{1'b0}}, dmemresp_msg_data[15:0] };
-
   wire [31:0] dmemresp_mux_out_Mhl
     = ( dmemresp_mux_sel_Mhl == 3'd0 ) ? dmemresp_msg_data
     : ( dmemresp_mux_sel_Mhl == 3'd1 ) ? dmemresp_lb_Mhl
@@ -454,6 +450,71 @@ module riscv_CoreDpath
     : ( dmemresp_mux_sel_Mhl == 3'd3 ) ? dmemresp_lh_Mhl
     : ( dmemresp_mux_sel_Mhl == 3'd4 ) ? dmemresp_lhu_Mhl
     :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_0_Mhl
+    = { {24{v_dmemresp_msg_data_0[7]}}, v_dmemresp_msg_data_0[7:0] };
+  wire [31:0] v_dmemresp_lbu_0_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_0[7:0] };
+  wire [31:0] v_dmemresp_lh_0_Mhl
+    = { {16{v_dmemresp_msg_data_0[15]}}, v_dmemresp_msg_data_0[15:0] };
+  wire [31:0] v_dmemresp_lhu_0_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_0[15:0] };
+  wire [31:0] v_dmemresp_mux_out_0_Mhl
+    = ( v_dmemresp_mux_sel_0_Mhl == 3'd0 ) ? v_dmemresp_msg_data_0
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd1 ) ? v_dmemresp_lb_0_Mhl
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd2 ) ? v_dmemresp_lbu_0_Mhl
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd3 ) ? v_dmemresp_lh_0_Mhl
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd4 ) ? v_dmemresp_lhu_0_Mhl
+    :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_1_Mhl
+    = { {24{v_dmemresp_msg_data_1[7]}}, v_dmemresp_msg_data_1[7:0] };
+  wire [31:0] v_dmemresp_lbu_1_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_1[7:0] };
+  wire [31:0] v_dmemresp_lh_1_Mhl
+    = { {16{v_dmemresp_msg_data_1[15]}}, v_dmemresp_msg_data_1[15:0] };
+  wire [31:0] v_dmemresp_lhu_1_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_1[15:0] };
+  wire [31:0] v_dmemresp_mux_out_1_Mhl
+    = ( v_dmemresp_mux_sel_1_Mhl == 3'd0 ) ? v_dmemresp_msg_data_1
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd1 ) ? v_dmemresp_lb_1_Mhl
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd2 ) ? v_dmemresp_lbu_1_Mhl
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd3 ) ? v_dmemresp_lh_1_Mhl
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd4 ) ? v_dmemresp_lhu_1_Mhl
+    :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_2_Mhl
+    = { {24{v_dmemresp_msg_data_2[7]}}, v_dmemresp_msg_data_2[7:0] };
+  wire [31:0] v_dmemresp_lbu_2_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_2[7:0] };
+  wire [31:0] v_dmemresp_lh_2_Mhl
+    = { {16{v_dmemresp_msg_data_2[15]}}, v_dmemresp_msg_data_2[15:0] };
+  wire [31:0] v_dmemresp_lhu_2_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_2[15:0] };
+  wire [31:0] v_dmemresp_mux_out_2_Mhl
+    = ( v_dmemresp_mux_sel_2_Mhl == 3'd0 ) ? v_dmemresp_msg_data_2
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd1 ) ? v_dmemresp_lb_2_Mhl
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd2 ) ? v_dmemresp_lbu_2_Mhl
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd3 ) ? v_dmemresp_lh_2_Mhl
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd4 ) ? v_dmemresp_lhu_2_Mhl
+    :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_3_Mhl
+    = { {24{v_dmemresp_msg_data_3[7]}}, v_dmemresp_msg_data_3[7:0] };
+  wire [31:0] v_dmemresp_lbu_3_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_3[7:0] };
+  wire [31:0] v_dmemresp_lh_3_Mhl
+    = { {16{v_dmemresp_msg_data_3[15]}}, v_dmemresp_msg_data_3[15:0] };
+  wire [31:0] v_dmemresp_lhu_3_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_3[15:0] };
+  wire [31:0] v_dmemresp_mux_out_3_Mhl
+    = ( v_dmemresp_mux_sel_3_Mhl == 3'd0 ) ? v_dmemresp_msg_data_3
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd1 ) ? v_dmemresp_lb_3_Mhl
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd2 ) ? v_dmemresp_lbu_3_Mhl
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd3 ) ? v_dmemresp_lh_3_Mhl
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd4 ) ? v_dmemresp_lhu_3_Mhl
+    :                                    32'bx;
+
 
   //----------------------------------------------------------------------
   // Queue for data memory response
@@ -506,9 +567,21 @@ module riscv_CoreDpath
     : ( dmemresp_queue_val_Mhl )  ? dmemresp_queue_reg_Mhl
     :                               32'bx;
   //vec 
-  wire [31:0] dmemresp_queue_mux_out_Mhl
-    = ( !dmemresp_queue_val_Mhl ) ? dmemresp_mux_out_Mhl
-    : ( dmemresp_queue_val_Mhl )  ? dmemresp_queue_reg_Mhl
+  wire [31:0] v_dmemresp_queue_mux_out_0_Mhl
+    = ( !v_dmemresp_queue_val_0_Mhl ) ? v_dmemresp_mux_out_0_Mhl
+    : ( v_dmemresp_queue_val_0_Mhl )  ? v_dmemresp_queue_reg_0_Mhl
+    :                               32'bx;
+  wire [31:0] v_dmemresp_queue_mux_out_1_Mhl
+    = ( !v_dmemresp_queue_val_1_Mhl ) ? v_dmemresp_mux_out_1_Mhl
+    : ( v_dmemresp_queue_val_1_Mhl )  ? v_dmemresp_queue_reg_1_Mhl
+    :                               32'bx;
+  wire [31:0] v_dmemresp_queue_mux_out_2_Mhl
+    = ( !v_dmemresp_queue_val_2_Mhl ) ? v_dmemresp_mux_out_2_Mhl
+    : ( v_dmemresp_queue_val_2_Mhl )  ? v_dmemresp_queue_reg_2_Mhl
+    :                               32'bx;
+  wire [31:0] v_dmemresp_queue_mux_out_3_Mhl
+    = ( !v_dmemresp_queue_val_3_Mhl ) ? v_dmemresp_mux_out_3_Mhl
+    : ( v_dmemresp_queue_val_3_Mhl )  ? v_dmemresp_queue_reg_3_Mhl
     :                               32'bx;
 
   //----------------------------------------------------------------------
@@ -520,10 +593,10 @@ module riscv_CoreDpath
     : ( wb_mux_sel_Mhl == 1'd1 ) ? dmemresp_queue_mux_out_Mhl
     :                              32'bx;
 
-  wire [31:0] wb_mux_out_Mhl
-    = ( wb_mux_sel_Mhl == 1'd0 ) ? execute_mux_out_Mhl
-    : ( wb_mux_sel_Mhl == 1'd1 ) ? dmemresp_queue_mux_out_Mhl
-    :                              32'bx;
+  wire [127:0] v_wb_mux_out_Mhl
+    = ( wb_mux_sel_Mhl == 1'd0 ) ? v_execute_mux_out_Mhl
+    : ( wb_mux_sel_Mhl == 1'd1 ) ? {v_dmemresp_queue_mux_out_3_Mhl,v_dmemresp_queue_mux_out_2_Mhl,v_dmemresp_queue_mux_out_1_Mhl,v_dmemresp_queue_mux_out_0_Mhl}
+    :                              128'bx;
   
 
 	//----------------------------------------------------------------------
@@ -532,11 +605,13 @@ module riscv_CoreDpath
 
   reg  [31:0] pc_X2hl;
   reg  [31:0] wb_mux_out_X2hl;
+  reg [127:0] v_wb_mux_out_X2hl;
 
   always @ (posedge clk) begin
     if( !stall_X2hl ) begin
       pc_X2hl                 <= pc_Mhl;
       wb_mux_out_X2hl         <= wb_mux_out_Mhl;
+      v_wb_mux_out_X2hl         <= v_wb_mux_out_Mhl;
     end
   end
 
@@ -547,30 +622,62 @@ module riscv_CoreDpath
 
   reg  [31:0] pc_X3hl;
   reg  [31:0] wb_mux_out_X3hl;
+  reg [127:0] v_wb_mux_out_X3hl;
 
   always @ (posedge clk) begin
     if( !stall_X3hl ) begin
       pc_X3hl                 <= pc_X2hl;
       wb_mux_out_X3hl         <= wb_mux_out_X2hl;
+      v_wb_mux_out_X3hl         <= v_wb_mux_out_X2hl;
     end
   end
   
 
   wire [63:0] muldivresp_msg_result_X3hl;
+  //vec
+  wire [63:0] v_muldivresp_msg_result_1_X3hl;
+  wire [63:0] v_muldivresp_msg_result_0_X3hl;
+  wire [63:0] v_muldivresp_msg_result_2_X3hl;
+  wire [63:0] v_muldivresp_msg_result_3_X3hl;
 
   // Muldiv Result Mux
-
   wire [31:0] muldiv_mux_out_X3hl
     = ( muldiv_mux_sel_X3hl == 1'd0 ) ? muldivresp_msg_result_X3hl[31:0]
     : ( muldiv_mux_sel_X3hl == 1'd1 ) ? muldivresp_msg_result_X3hl[63:32]
     :                                   32'bx;
-
   // Execute Result Mux
-
   wire [31:0] execute_mux_out_X3hl
     = ( execute_mux_sel_X3hl == 1'd0 ) ? wb_mux_out_X3hl
     : ( execute_mux_sel_X3hl == 1'd1 ) ? muldiv_mux_out_X3hl
     :                                    32'bx;
+
+//vector
+  // Muldiv Result Mux v0
+  wire [31:0] v_muldiv_mux_out_0_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_0_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_0_X3hl[63:32]
+    :                                   32'bx;
+    // Muldiv Result Mux v1
+  wire [31:0] v_muldiv_mux_out_1_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_1_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_1_X3hl[63:32]
+    :                                   32'bx;
+    // Muldiv Result Mux v2
+  wire [31:0] v_muldiv_mux_out_2_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_2_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_2_X3hl[63:32]
+    :                                   32'bx;
+    // Muldiv Result Mux v3
+  wire [31:0] v_muldiv_mux_out_3_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_3_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_3_X3hl[63:32]
+    :                                   32'bx;
+
+  // Execute Result Mux vectors
+  wire [127:0] v_execute_mux_out_X3hl
+    = ( execute_mux_sel_X3hl == 1'd0 ) ? v_wb_mux_out_X3hl
+    : ( execute_mux_sel_X3hl == 1'd1 ) ? {v_muldiv_mux_out_3_X3hl,v_muldiv_mux_out_2_X3hl,v_muldiv_mux_out_1_X3hl,v_muldiv_mux_out_0_X3hl}
+    :                                    128'bx;
 
 
   //----------------------------------------------------------------------
@@ -579,11 +686,13 @@ module riscv_CoreDpath
 
   reg  [31:0] pc_Whl;
   reg  [31:0] wb_mux_out_Whl;
+  reg  [127:0] v_wb_mux_out_Whl;
 
   always @ (posedge clk) begin
     if( !stall_Whl ) begin
       pc_Whl                 <= pc_X3hl;
       wb_mux_out_Whl         <= execute_mux_out_X3hl;
+      v_wb_mux_out_Whl       <= v_execute_mux_out_X3hl;
     end
   end
 
