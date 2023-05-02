@@ -75,8 +75,8 @@ module riscv_CoreDpath
 	input					stall_X3hl,
 
   // VECTOR ADDED
-  input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
-  input   [8:0] v_rf_waddr_Dhl,
+  // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  input   [4:0] rf_waddr_Dhl,
   input   [1:0] v_lanes_Whl, // idx of last used lane of the 4 lanes - also even needed? for writeout ig
   input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
@@ -89,6 +89,8 @@ module riscv_CoreDpath
   // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
   // meoryyy stuff
   input   [3:0] v_rf_ridx_Dhl,
+  input   [3:0] v_rf_widx_Whl,
+
 
   input         v_dmemresp_queue_en_0_Mhl,
   input         v_dmemresp_queue_val_0_Mhl,
@@ -212,7 +214,7 @@ module riscv_CoreDpath
   wire [ 4:0] rf_raddr0_Dhl = inst_rs1_Dhl;
   wire [31:0] rf_rdata0_Dhl;
   wire [ 4:0] rf_raddr1_Dhl 
-      = (v_isstore_Dhl && v_isvec_Dhl) v_rf_waddr_Dhl 
+      = (v_isstore_Dhl && v_isvec_Dhl) rf_waddr_Dhl 
       :                                inst_rs2_Dhl;
   wire [31:0] rf_rdata1_Dhl;
 
@@ -349,7 +351,7 @@ module riscv_CoreDpath
   reg [31:0] op1_mux_out_Xhl;
   reg [31:0] wdata_Xhl;
   reg [127:0] v_op0_mux_out_Xhl;
-  reg [127:0] v_op0_mux_out_Xhl;
+  reg [127:0] v_op1_mux_out_Xhl;
   reg [127:0] v_wdata_Xhl;
 
   always @ (posedge clk) begin
@@ -746,7 +748,7 @@ module riscv_CoreDpath
     .rdata0  (rf_rdata0_Dhl),
     .raddr1  (rf_raddr1_Dhl),
     .rdata1  (rf_rdata1_Dhl),
-    .wen_p   (rf_wen_Whl),
+    .wen_p   (rf_wen_Whl&&(!v_isvec_Whl)),
     .waddr_p (rf_waddr_Whl),
     .wdata_p (wb_mux_out_Whl)
   );
@@ -756,16 +758,18 @@ module riscv_CoreDpath
   riscv_CoreDpathVectorRegfile v_rfile
   (
     .clk     (clk),
-    .raddr0  (rf_raddr0_Dhl),
-    .rdata0  (rf_rdata0_Dhl),
-    .raddr1  (rf_raddr1_Dhl),
-    .rdata1  (rf_rdata1_Dhl),
-    .wen_p   (rf_wen_Whl),
-    .waddr_p (rf_waddr_Whl),
-    .wdata_p (wb_mux_out_Whl)
+    .v_raddr0  (rf_raddr0_Dhl),
+    .v_ridx0 (v_rf_ridx_Dhl),
+    .v_rdata0  (v_rf_rdata0_Dhl),
+    .v_raddr1  (rf_raddr1_Dhl),
+    .v_ridx1 (v_rf_ridx_Dhl),
+    .v_rdata1  (v_rf_rdata1_Dhl),
+    .v_lanes (v_lanes_Whl),
+    .v_wen_p   ((rf_wen_Whl&&v_isvec_Whl)),
+    .v_waddr_p (rf_waddr_Whl),
+    .v_widx_p  ({v_rf_widx_Whl,2'd0}),
+    .v_wdata_p (v_wb_mux_out_Whl),
   );
-
-  // ALU
 
   riscv_CoreDpathAlu alu
   (
@@ -775,36 +779,36 @@ module riscv_CoreDpath
     .out  (alu_out_Xhl)
   );
 
-  riscv_CoreDpathAlu aluv0
+  riscv_CoreDpathAlu v_alu_0
   (
-    .in0  (op0_mux_out_Xhl),
-    .in1  (op1_mux_out_Xhl),
+    .in0  (v_op0_mux_out_Xhl[31:0]),
+    .in1  (v_op1_mux_out_Xhl[31:0]),
     .fn   (alu_fn_Xhl),
-    .out  (alu_out_Xhl)
+    .out  (v_alu_out_Xhl[31:0])
   );
 
-  riscv_CoreDpathAlu aluv1
+  riscv_CoreDpathAlu v_alu_1
   (
-    .in0  (op0_mux_out_Xhl),
-    .in1  (op1_mux_out_Xhl),
+    .in0  (v_op0_mux_out_Xhl[63:32]),
+    .in1  (v_op1_mux_out_Xhl[63:32]),
     .fn   (alu_fn_Xhl),
-    .out  (alu_out_Xhl)
+    .out  (v_alu_out_Xhl[63:32])
   );
 
-  riscv_CoreDpathAlu aluv2
+  riscv_CoreDpathAlu v_alu_2
   (
-    .in0  (op0_mux_out_Xhl),
-    .in1  (op1_mux_out_Xhl),
+    .in0  (v_op0_mux_out_Xhl[95:64]),
+    .in1  (v_op1_mux_out_Xhl[95:64]),
     .fn   (alu_fn_Xhl),
-    .out  (alu_out_Xhl)
+    .out  (v_alu_out_Xhl[95:64])
   );
 
-  riscv_CoreDpathAlu aluv3
+  riscv_CoreDpathAlu v_alu_3
   (
-    .in0  (op0_mux_out_Xhl),
-    .in1  (op1_mux_out_Xhl),
+    .in0  (v_op0_mux_out_Xhl[127:96]),
+    .in1  (v_op1_mux_out_Xhl[127:96]),
     .fn   (alu_fn_Xhl),
-    .out  (alu_out_Xhl)
+    .out  (v_alu_out_Xhl[127:96])
   );
 
 
@@ -831,14 +835,14 @@ module riscv_CoreDpath
     .stall_X3hl               (stall_X3hl           )
 	);
 
-  riscv_CoreDpathPipeMulDiv pmuldivv0
+  riscv_CoreDpathPipeMulDiv v_pmuldiv_2
 	(
 	  .clk											(clk									),
     .reset										(reset								),
     
 		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
-    .muldivreq_msg_a					(op0_mux_out_Dhl			),
-    .muldivreq_msg_b					(op1_mux_out_Dhl			),
+    .muldivreq_msg_a					(v_op0_mux_out_Xhl[95:64]	),
+    .muldivreq_msg_b					(v_op0_mux_out_Xhl[95:64] ),
     .muldivreq_val						(muldivreq_val				),
     .muldivreq_rdy						(muldivreq_rdy				),
                                                    
