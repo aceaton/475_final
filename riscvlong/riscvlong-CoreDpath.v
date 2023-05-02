@@ -61,7 +61,7 @@ module riscv_CoreDpath
   input         dmemresp_queue_en_Mhl, // needs own
   input         dmemresp_queue_val_Mhl, // needs own
   input         wb_mux_sel_Mhl,
-  input         rf_wen_Whl,
+  input         rf_wen_Whl, // use this
   input  [ 4:0] rf_waddr_Whl,
   input         stall_Fhl,
   input         stall_Dhl,
@@ -76,14 +76,28 @@ module riscv_CoreDpath
 
   // VECTOR ADDED
   input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  input   [8:0] v_rf_waddr_Dhl,
   input   [1:0] v_lanes_Whl, // idx of last used lane of the 4 lanes - also even needed? for writeout ig
   input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
   input   [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
 	input   [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
+  input   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  input   [1:0] v_op1_mux_sel_Dhl,
+  input         v_isstore_Dhl,
   input         v_isvec_Whl, // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
   // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
   // meoryyy stuff
+  input   [3:0] v_rf_ridx_Dhl,
+
+  input         v_dmemresp_queue_en_0_Mhl,
+  input         v_dmemresp_queue_val_0_Mhl,
+  input         v_dmemresp_queue_en_1_Mhl,
+  input         v_dmemresp_queue_val_1_Mhl,
+  input         v_dmemresp_queue_en_2_Mhl,
+  input         v_dmemresp_queue_val_2_Mhl,
+  input         v_dmemresp_queue_en_3_Mhl,
+  input         v_dmemresp_queue_val_3_Mhl,
 
   // Control Signals (dpath->ctrl)
 
@@ -197,12 +211,18 @@ module riscv_CoreDpath
 
   wire [ 4:0] rf_raddr0_Dhl = inst_rs1_Dhl;
   wire [31:0] rf_rdata0_Dhl;
-  wire [ 4:0] rf_raddr1_Dhl = inst_rs2_Dhl;
+  wire [ 4:0] rf_raddr1_Dhl 
+      = (v_isstore_Dhl && v_isvec_Dhl) v_rf_waddr_Dhl 
+      :                                inst_rs2_Dhl;
   wire [31:0] rf_rdata1_Dhl;
 
+  assign imemreq_msg_addr
+    = ( reset ) ? reset_vector
+    :             pc_mux_out_Phl;
+
   // VECTOR register file
-  wire [127:0] v_rf_rdata0_Dhl;
-  wire [127:0] v_rf_rdata1_Dhl;
+  wire [127:0] v_rf_rdata0_Dhl; // todo - where do we get this data from instr to bits??
+  wire [127:0] v_rf_rdata1_Dhl; // todo
 
   // Jump reg address
 
@@ -282,26 +302,27 @@ module riscv_CoreDpath
     : ( op1_mux_sel_Dhl == 3'd6 ) ? const0
     :                               32'bx;
 
-  //   // Operand 0 mux
+//VECTOR stuff - which are strided and which just use the thing
+    // Operand 0 mux
 
-  // wire [31:0] op0_mux_out_Dhl
-  //   = ( op0_mux_sel_Dhl == 2'd0 ) ? rdata0_byp_mux_out_Dhl
-  //   : ( op0_mux_sel_Dhl == 2'd1 ) ? pc_Dhl
-  //   : ( op0_mux_sel_Dhl == 2'd2 ) ? pc_plus4_Dhl
-  //   : ( op0_mux_sel_Dhl == 2'd3 ) ? const0
-  //   :                               32'bx;
+  wire [127:0] v_op0_mux_out_Dhl
+    = ( v_op0_mux_sel_Dhl == 2'd0 ) ? v_rdata0_byp_mux_out_Dhl
+    : ( v_op0_mux_sel_Dhl == 2'd1 ) ? {rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl}
+    : ( v_op0_mux_sel_Dhl == 2'd2 ) ? {const0,const0,const0,const0}
+    :                               128'bx;
 
-  // // Operand 1 mux
+  // Operand 1 mux
 
-  // wire [31:0] op1_mux_out_Dhl
-  //   = ( op1_mux_sel_Dhl == 3'd0 ) ? rdata1_byp_mux_out_Dhl
-  //   : ( op1_mux_sel_Dhl == 3'd1 ) ? shamt_Dhl
-  //   : ( op1_mux_sel_Dhl == 3'd2 ) ? imm_u_Dhl
-  //   : ( op1_mux_sel_Dhl == 3'd3 ) ? imm_sb_Dhl
-  //   : ( op1_mux_sel_Dhl == 3'd4 ) ? imm_i_Dhl
-  //   : ( op1_mux_sel_Dhl == 3'd5 ) ? imm_s_Dhl
-  //   : ( op1_mux_sel_Dhl == 3'd6 ) ? const0
-  //   :                               32'bx;
+  wire [31:0] v_off0_Dhl = (v_rf_ridx_Dhl << 7) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off1_Dhl = ((v_rf_ridx_Dhl<<2 + 32'd1) << 5) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off2_Dhl = ((v_rf_ridx_Dhl<<2 + 32'd2) << 5) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off3_Dhl = ((v_rf_ridx_Dhl<<2 + 32'd3) << 5) * rdata1_byp_mux_out_Dhl // stride
+
+  wire [127:0] v_op1_mux_out_Dhl
+    = ( v_op1_mux_sel_Dhl == 2'd0 ) ? v_rdata1_byp_mux_out_Dhl
+    : ( v_op1_mux_sel_Dhl == 2'd1 ) ? {v_off3_Dhl,v_off2_Dhl,v_off1_Dhl,v_off0_Dhl}
+    : ( v_op1_mux_sel_Dhl == 2'd2 ) ? {const0,const0,const0,const0}
+    :                               128'bx;
 
     
   // VECTOR dont have more muxes cuz we dont need anything other than the bypass mux sel, we're not adding vector immediates
@@ -416,16 +437,12 @@ module riscv_CoreDpath
 
   wire [31:0] dmemresp_lb_Mhl
     = { {24{dmemresp_msg_data[7]}}, dmemresp_msg_data[7:0] };
-
   wire [31:0] dmemresp_lbu_Mhl
     = { {24{1'b0}}, dmemresp_msg_data[7:0] };
-
   wire [31:0] dmemresp_lh_Mhl
     = { {16{dmemresp_msg_data[15]}}, dmemresp_msg_data[15:0] };
-
   wire [31:0] dmemresp_lhu_Mhl
     = { {16{1'b0}}, dmemresp_msg_data[15:0] };
-
   wire [31:0] dmemresp_mux_out_Mhl
     = ( dmemresp_mux_sel_Mhl == 3'd0 ) ? dmemresp_msg_data
     : ( dmemresp_mux_sel_Mhl == 3'd1 ) ? dmemresp_lb_Mhl
@@ -433,6 +450,71 @@ module riscv_CoreDpath
     : ( dmemresp_mux_sel_Mhl == 3'd3 ) ? dmemresp_lh_Mhl
     : ( dmemresp_mux_sel_Mhl == 3'd4 ) ? dmemresp_lhu_Mhl
     :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_0_Mhl
+    = { {24{v_dmemresp_msg_data_0[7]}}, v_dmemresp_msg_data_0[7:0] };
+  wire [31:0] v_dmemresp_lbu_0_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_0[7:0] };
+  wire [31:0] v_dmemresp_lh_0_Mhl
+    = { {16{v_dmemresp_msg_data_0[15]}}, v_dmemresp_msg_data_0[15:0] };
+  wire [31:0] v_dmemresp_lhu_0_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_0[15:0] };
+  wire [31:0] v_dmemresp_mux_out_0_Mhl
+    = ( v_dmemresp_mux_sel_0_Mhl == 3'd0 ) ? v_dmemresp_msg_data_0
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd1 ) ? v_dmemresp_lb_0_Mhl
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd2 ) ? v_dmemresp_lbu_0_Mhl
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd3 ) ? v_dmemresp_lh_0_Mhl
+    : ( v_dmemresp_mux_sel_0_Mhl == 3'd4 ) ? v_dmemresp_lhu_0_Mhl
+    :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_1_Mhl
+    = { {24{v_dmemresp_msg_data_1[7]}}, v_dmemresp_msg_data_1[7:0] };
+  wire [31:0] v_dmemresp_lbu_1_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_1[7:0] };
+  wire [31:0] v_dmemresp_lh_1_Mhl
+    = { {16{v_dmemresp_msg_data_1[15]}}, v_dmemresp_msg_data_1[15:0] };
+  wire [31:0] v_dmemresp_lhu_1_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_1[15:0] };
+  wire [31:0] v_dmemresp_mux_out_1_Mhl
+    = ( v_dmemresp_mux_sel_1_Mhl == 3'd0 ) ? v_dmemresp_msg_data_1
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd1 ) ? v_dmemresp_lb_1_Mhl
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd2 ) ? v_dmemresp_lbu_1_Mhl
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd3 ) ? v_dmemresp_lh_1_Mhl
+    : ( v_dmemresp_mux_sel_1_Mhl == 3'd4 ) ? v_dmemresp_lhu_1_Mhl
+    :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_2_Mhl
+    = { {24{v_dmemresp_msg_data_2[7]}}, v_dmemresp_msg_data_2[7:0] };
+  wire [31:0] v_dmemresp_lbu_2_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_2[7:0] };
+  wire [31:0] v_dmemresp_lh_2_Mhl
+    = { {16{v_dmemresp_msg_data_2[15]}}, v_dmemresp_msg_data_2[15:0] };
+  wire [31:0] v_dmemresp_lhu_2_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_2[15:0] };
+  wire [31:0] v_dmemresp_mux_out_2_Mhl
+    = ( v_dmemresp_mux_sel_2_Mhl == 3'd0 ) ? v_dmemresp_msg_data_2
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd1 ) ? v_dmemresp_lb_2_Mhl
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd2 ) ? v_dmemresp_lbu_2_Mhl
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd3 ) ? v_dmemresp_lh_2_Mhl
+    : ( v_dmemresp_mux_sel_2_Mhl == 3'd4 ) ? v_dmemresp_lhu_2_Mhl
+    :                                    32'bx;
+
+  wire [31:0] v_dmemresp_lb_3_Mhl
+    = { {24{v_dmemresp_msg_data_3[7]}}, v_dmemresp_msg_data_3[7:0] };
+  wire [31:0] v_dmemresp_lbu_3_Mhl
+    = { {24{1'b0}}, v_dmemresp_msg_data_3[7:0] };
+  wire [31:0] v_dmemresp_lh_3_Mhl
+    = { {16{v_dmemresp_msg_data_3[15]}}, v_dmemresp_msg_data_3[15:0] };
+  wire [31:0] v_dmemresp_lhu_3_Mhl
+    = { {16{1'b0}}, v_dmemresp_msg_data_3[15:0] };
+  wire [31:0] v_dmemresp_mux_out_3_Mhl
+    = ( v_dmemresp_mux_sel_3_Mhl == 3'd0 ) ? v_dmemresp_msg_data_3
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd1 ) ? v_dmemresp_lb_3_Mhl
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd2 ) ? v_dmemresp_lbu_3_Mhl
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd3 ) ? v_dmemresp_lh_3_Mhl
+    : ( v_dmemresp_mux_sel_3_Mhl == 3'd4 ) ? v_dmemresp_lhu_3_Mhl
+    :                                    32'bx;
+
 
   //----------------------------------------------------------------------
   // Queue for data memory response
@@ -485,9 +567,21 @@ module riscv_CoreDpath
     : ( dmemresp_queue_val_Mhl )  ? dmemresp_queue_reg_Mhl
     :                               32'bx;
   //vec 
-  wire [31:0] dmemresp_queue_mux_out_Mhl
-    = ( !dmemresp_queue_val_Mhl ) ? dmemresp_mux_out_Mhl
-    : ( dmemresp_queue_val_Mhl )  ? dmemresp_queue_reg_Mhl
+  wire [31:0] v_dmemresp_queue_mux_out_0_Mhl
+    = ( !v_dmemresp_queue_val_0_Mhl ) ? v_dmemresp_mux_out_0_Mhl
+    : ( v_dmemresp_queue_val_0_Mhl )  ? v_dmemresp_queue_reg_0_Mhl
+    :                               32'bx;
+  wire [31:0] v_dmemresp_queue_mux_out_1_Mhl
+    = ( !v_dmemresp_queue_val_1_Mhl ) ? v_dmemresp_mux_out_1_Mhl
+    : ( v_dmemresp_queue_val_1_Mhl )  ? v_dmemresp_queue_reg_1_Mhl
+    :                               32'bx;
+  wire [31:0] v_dmemresp_queue_mux_out_2_Mhl
+    = ( !v_dmemresp_queue_val_2_Mhl ) ? v_dmemresp_mux_out_2_Mhl
+    : ( v_dmemresp_queue_val_2_Mhl )  ? v_dmemresp_queue_reg_2_Mhl
+    :                               32'bx;
+  wire [31:0] v_dmemresp_queue_mux_out_3_Mhl
+    = ( !v_dmemresp_queue_val_3_Mhl ) ? v_dmemresp_mux_out_3_Mhl
+    : ( v_dmemresp_queue_val_3_Mhl )  ? v_dmemresp_queue_reg_3_Mhl
     :                               32'bx;
 
   //----------------------------------------------------------------------
@@ -499,10 +593,10 @@ module riscv_CoreDpath
     : ( wb_mux_sel_Mhl == 1'd1 ) ? dmemresp_queue_mux_out_Mhl
     :                              32'bx;
 
-  wire [31:0] wb_mux_out_Mhl
-    = ( wb_mux_sel_Mhl == 1'd0 ) ? execute_mux_out_Mhl
-    : ( wb_mux_sel_Mhl == 1'd1 ) ? dmemresp_queue_mux_out_Mhl
-    :                              32'bx;
+  wire [127:0] v_wb_mux_out_Mhl
+    = ( wb_mux_sel_Mhl == 1'd0 ) ? v_execute_mux_out_Mhl
+    : ( wb_mux_sel_Mhl == 1'd1 ) ? {v_dmemresp_queue_mux_out_3_Mhl,v_dmemresp_queue_mux_out_2_Mhl,v_dmemresp_queue_mux_out_1_Mhl,v_dmemresp_queue_mux_out_0_Mhl}
+    :                              128'bx;
   
 
 	//----------------------------------------------------------------------
@@ -511,11 +605,13 @@ module riscv_CoreDpath
 
   reg  [31:0] pc_X2hl;
   reg  [31:0] wb_mux_out_X2hl;
+  reg [127:0] v_wb_mux_out_X2hl;
 
   always @ (posedge clk) begin
     if( !stall_X2hl ) begin
       pc_X2hl                 <= pc_Mhl;
       wb_mux_out_X2hl         <= wb_mux_out_Mhl;
+      v_wb_mux_out_X2hl         <= v_wb_mux_out_Mhl;
     end
   end
 
@@ -526,30 +622,62 @@ module riscv_CoreDpath
 
   reg  [31:0] pc_X3hl;
   reg  [31:0] wb_mux_out_X3hl;
+  reg [127:0] v_wb_mux_out_X3hl;
 
   always @ (posedge clk) begin
     if( !stall_X3hl ) begin
       pc_X3hl                 <= pc_X2hl;
       wb_mux_out_X3hl         <= wb_mux_out_X2hl;
+      v_wb_mux_out_X3hl         <= v_wb_mux_out_X2hl;
     end
   end
   
 
   wire [63:0] muldivresp_msg_result_X3hl;
+  //vec
+  wire [63:0] v_muldivresp_msg_result_1_X3hl;
+  wire [63:0] v_muldivresp_msg_result_0_X3hl;
+  wire [63:0] v_muldivresp_msg_result_2_X3hl;
+  wire [63:0] v_muldivresp_msg_result_3_X3hl;
 
   // Muldiv Result Mux
-
   wire [31:0] muldiv_mux_out_X3hl
     = ( muldiv_mux_sel_X3hl == 1'd0 ) ? muldivresp_msg_result_X3hl[31:0]
     : ( muldiv_mux_sel_X3hl == 1'd1 ) ? muldivresp_msg_result_X3hl[63:32]
     :                                   32'bx;
-
   // Execute Result Mux
-
   wire [31:0] execute_mux_out_X3hl
     = ( execute_mux_sel_X3hl == 1'd0 ) ? wb_mux_out_X3hl
     : ( execute_mux_sel_X3hl == 1'd1 ) ? muldiv_mux_out_X3hl
     :                                    32'bx;
+
+//vector
+  // Muldiv Result Mux v0
+  wire [31:0] v_muldiv_mux_out_0_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_0_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_0_X3hl[63:32]
+    :                                   32'bx;
+    // Muldiv Result Mux v1
+  wire [31:0] v_muldiv_mux_out_1_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_1_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_1_X3hl[63:32]
+    :                                   32'bx;
+    // Muldiv Result Mux v2
+  wire [31:0] v_muldiv_mux_out_2_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_2_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_2_X3hl[63:32]
+    :                                   32'bx;
+    // Muldiv Result Mux v3
+  wire [31:0] v_muldiv_mux_out_3_X3hl
+    = ( muldiv_mux_sel_X3hl == 1'd0 ) ? v_muldivresp_msg_result_3_X3hl[31:0]
+    : ( muldiv_mux_sel_X3hl == 1'd1 ) ? v_muldivresp_msg_result_3_X3hl[63:32]
+    :                                   32'bx;
+
+  // Execute Result Mux vectors
+  wire [127:0] v_execute_mux_out_X3hl
+    = ( execute_mux_sel_X3hl == 1'd0 ) ? v_wb_mux_out_X3hl
+    : ( execute_mux_sel_X3hl == 1'd1 ) ? {v_muldiv_mux_out_3_X3hl,v_muldiv_mux_out_2_X3hl,v_muldiv_mux_out_1_X3hl,v_muldiv_mux_out_0_X3hl}
+    :                                    128'bx;
 
 
   //----------------------------------------------------------------------
@@ -558,11 +686,13 @@ module riscv_CoreDpath
 
   reg  [31:0] pc_Whl;
   reg  [31:0] wb_mux_out_Whl;
+  reg  [127:0] v_wb_mux_out_Whl;
 
   always @ (posedge clk) begin
     if( !stall_Whl ) begin
       pc_Whl                 <= pc_X3hl;
       wb_mux_out_Whl         <= execute_mux_out_X3hl;
+      v_wb_mux_out_Whl       <= v_execute_mux_out_X3hl;
     end
   end
 
@@ -623,21 +753,29 @@ module riscv_CoreDpath
 
   // VECTOR Register File
 
-  // riscv_CoreDpathVectorRegfile vrfile
-  // (
-  //   .clk     (clk),
-  //   .raddr0  (rf_raddr0_Dhl),
-  //   .rdata0  (rf_rdata0_Dhl),
-  //   .raddr1  (rf_raddr1_Dhl),
-  //   .rdata1  (rf_rdata1_Dhl),
-  //   .wen_p   (rf_wen_Whl),
-  //   .waddr_p (rf_waddr_Whl),
-  //   .wdata_p (wb_mux_out_Whl)
-  // );
+  riscv_CoreDpathVectorRegfile v_rfile
+  (
+    .clk     (clk),
+    .raddr0  (rf_raddr0_Dhl),
+    .rdata0  (rf_rdata0_Dhl),
+    .raddr1  (rf_raddr1_Dhl),
+    .rdata1  (rf_rdata1_Dhl),
+    .wen_p   (rf_wen_Whl),
+    .waddr_p (rf_waddr_Whl),
+    .wdata_p (wb_mux_out_Whl)
+  );
 
   // ALU
 
   riscv_CoreDpathAlu alu
+  (
+    .in0  (op0_mux_out_Xhl),
+    .in1  (op1_mux_out_Xhl),
+    .fn   (alu_fn_Xhl),
+    .out  (alu_out_Xhl)
+  );
+
+  riscv_CoreDpathAlu aluv0
   (
     .in0  (op0_mux_out_Xhl),
     .in1  (op1_mux_out_Xhl),
