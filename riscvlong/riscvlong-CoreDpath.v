@@ -90,12 +90,11 @@ module riscv_CoreDpath
   // meoryyy stuff
   input         v_isvec_Dhl,
   input         v_isvec_X3hl,
-  input   [3:0] v_rf_ridx_Dhl,
-  input   [3:0] v_rf_widx_Whl,
+  input   [3:0] v_idx_Dhl,
+  input   [3:0] v_idx_Whl,
   input v_rinter0_Dhl,
   input v_rinter1_Dhl,
   input v_winter_Whl,
-
 
   input         v_dmemresp_queue_en_0_Mhl,
   input         v_dmemresp_queue_val_0_Mhl,
@@ -115,6 +114,7 @@ module riscv_CoreDpath
   output        branch_cond_ge_Xhl,
   output        branch_cond_geu_Xhl,
   output [31:0] proc2csr_data_Whl
+  // we could process the csrs (vl) in dp and send across, or just not
 );
 
   //--------------------------------------------------------------------
@@ -320,10 +320,10 @@ module riscv_CoreDpath
 
   // Operand 1 mux
 
-  wire [31:0] v_off0_Dhl = (v_rf_ridx_Dhl << 7) * rdata1_byp_mux_out_Dhl // stride
-  wire [31:0] v_off1_Dhl = ((v_rf_ridx_Dhl<<2 + 32'd1) << 5) * rdata1_byp_mux_out_Dhl // stride
-  wire [31:0] v_off2_Dhl = ((v_rf_ridx_Dhl<<2 + 32'd2) << 5) * rdata1_byp_mux_out_Dhl // stride
-  wire [31:0] v_off3_Dhl = ((v_rf_ridx_Dhl<<2 + 32'd3) << 5) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off0_Dhl = (v_idx_Dhl << 7) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off1_Dhl = ((v_idx_Dhl<<2 + 32'd1) << 5) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off2_Dhl = ((v_idx_Dhl<<2 + 32'd2) << 5) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off3_Dhl = ((v_idx_Dhl<<2 + 32'd3) << 5) * rdata1_byp_mux_out_Dhl // stride
 
   wire [127:0] v_op1_mux_out_Dhl
     = ( v_op1_mux_sel_Dhl == 2'd0 ) ? v_rdata1_byp_mux_out_Dhl
@@ -764,15 +764,15 @@ module riscv_CoreDpath
   (
     .clk     (clk),
     .v_raddr0  (rf_raddr0_Dhl),
-    .v_ridx0 (v_rf_ridx_Dhl),
+    .v_ridx0 (v_idx_Dhl),
     .v_rdata0  (v_rf_rdata0_Dhl),
     .v_raddr1  (rf_raddr1_Dhl),
-    .v_ridx1 (v_rf_ridx_Dhl),
+    .v_ridx1 (v_idx_Dhl),
     .v_rdata1  (v_rf_rdata1_Dhl),
     .v_lanes (v_lanes_Whl),
     .v_wen_p   ((rf_wen_Whl&&v_isvec_Whl)),
     .v_waddr_p (rf_waddr_Whl),
-    .v_widx_p  ({v_rf_widx_Whl,2'd0}),
+    .v_widx_p  ({v_idx_Whl,2'd0}),
     .v_wdata_p (v_wb_mux_out_Whl),
     .v_rinter0 (v_rinter0_Dhl),
     .v_rinter1 (v_rinter1_Dhl),

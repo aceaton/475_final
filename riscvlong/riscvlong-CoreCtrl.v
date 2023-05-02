@@ -78,14 +78,45 @@ module riscv_CoreCtrl
 	output				stall_X2hl,
 	output				stall_X3hl,
 
+  // // VECTOR ADDED
+  // output  [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  // output  [1:0] v_lanes, // idx of last used lane of the 4 lanes
+  // output        v_wfrom_intermediate, // whether or not to write from the intermediate vector register in the case of acc
+  // // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
+  // output  [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
+	// output  [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
+  // output        v_isvec_Dhl,
+
   // VECTOR ADDED
-  output  [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
-  output  [1:0] v_lanes, // idx of last used lane of the 4 lanes
-  output        v_wfrom_intermediate, // whether or not to write from the intermediate vector register in the case of acc
+  // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  output   [4:0] rf_waddr_Dhl,
+  output   [1:0] v_lanes_Whl, // idx of last used lane of the 4 lanes - also even needed? for writeout ig
+  // input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
-  output  [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
-	output  [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
-  output        v_isvec_Dhl,
+  output   [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
+	output   [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
+  output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  output   [1:0] v_op1_mux_sel_Dhl,
+  output         v_isstore_Dhl,
+  output         v_isvec_Whl, // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
+  // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
+  // meoryyy stuff
+  output         v_isvec_Dhl,
+  output         v_isvec_X3hl,
+  output   [3:0] v_idx_Dhl,
+  output   [3:0] v_idx_Whl,
+  output v_rinter0_Dhl,
+  output v_rinter1_Dhl,
+  output v_winter_Whl,
+
+  output         v_dmemresp_queue_en_0_Mhl,
+  output         v_dmemresp_queue_val_0_Mhl,
+  output         v_dmemresp_queue_en_1_Mhl,
+  output         v_dmemresp_queue_val_1_Mhl,
+  output         v_dmemresp_queue_en_2_Mhl,
+  output         v_dmemresp_queue_val_2_Mhl,
+  output         v_dmemresp_queue_en_3_Mhl,
+  output         v_dmemresp_queue_val_3_Mhl,
 
   // Control Signals (dpath->ctrl)
 
@@ -525,7 +556,8 @@ module riscv_CoreCtrl
   // Register Writeback Controls
 
   wire rf_wen_Dhl         = cs[`RISCV_INST_MSG_RF_WEN];
-  wire [4:0] rf_waddr_Dhl = cs[`RISCV_INST_MSG_RF_WADDR];
+  // wire [4:0] rf_waddr_Dhl = cs[`RISCV_INST_MSG_RF_WADDR];
+  assign rf_waddr_Dhl = cs[`RISCV_INST_MSG_RF_WADDR];
 
   // CSR register write enable
 
