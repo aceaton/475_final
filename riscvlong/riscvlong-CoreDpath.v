@@ -78,7 +78,7 @@ module riscv_CoreDpath
   // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
   input   [4:0] rf_waddr_Dhl,
   input   [1:0] v_lanes_Whl, // idx of last used lane of the 4 lanes - also even needed? for writeout ig
-  input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
+  // input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
   input   [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
 	input   [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
@@ -88,8 +88,13 @@ module riscv_CoreDpath
   input         v_isvec_Whl, // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
   // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
   // meoryyy stuff
+  input         v_isvec_Dhl,
+  input         v_isvec_X3hl,
   input   [3:0] v_rf_ridx_Dhl,
   input   [3:0] v_rf_widx_Whl,
+  input v_rinter0_Dhl,
+  input v_rinter1_Dhl,
+  input v_winter_Whl,
 
 
   input         v_dmemresp_queue_en_0_Mhl,
@@ -769,6 +774,9 @@ module riscv_CoreDpath
     .v_waddr_p (rf_waddr_Whl),
     .v_widx_p  ({v_rf_widx_Whl,2'd0}),
     .v_wdata_p (v_wb_mux_out_Whl),
+    .v_rinter0 (v_rinter0_Dhl),
+    .v_rinter1 (v_rinter1_Dhl),
+    .v_winter (v_winter_Whl)
   );
 
   riscv_CoreDpathAlu alu
@@ -822,12 +830,54 @@ module riscv_CoreDpath
 		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
     .muldivreq_msg_a					(op0_mux_out_Dhl			),
     .muldivreq_msg_b					(op1_mux_out_Dhl			),
-    .muldivreq_val						(muldivreq_val				),
-    .muldivreq_rdy						(muldivreq_rdy				),
+    .muldivreq_val						(muldivreq_val && !v_isvec_Dhl		),
+    .muldivreq_rdy						(s_muldivreq_rdy				),
                                                    
     .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
-    .muldivresp_val						(muldivresp_val				),
-    .muldivresp_rdy						(muldivresp_rdy				),
+    .muldivresp_val						(s_muldivresp_val				),
+    .muldivresp_rdy						(muldivresp_rdy	&& !v_isvec_X3hl				),
+                                                
+		.stall_Xhl								(stall_Xhl						),
+    .stall_Mhl								(stall_Mhl						),
+    .stall_X2hl								(stall_X2hl						),
+    .stall_X3hl               (stall_X3hl           )
+	);
+
+  riscv_CoreDpathPipeMulDiv v_pmuldiv_0
+	(
+	  .clk											(clk									),
+    .reset										(reset								),
+    
+		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
+    .muldivreq_msg_a					(v_op0_mux_out_Xhl[31:0]	),
+    .muldivreq_msg_b					(v_op0_mux_out_Xhl[31:0] ),
+    .muldivreq_val						(muldivreq_val && v_isvec_Dhl				),
+    .muldivreq_rdy						(v_muldivreq_rdy_0			),
+                                                   
+    .muldivresp_msg_result		(v_muldivresp_msg_result_0_X3hl),
+    .muldivresp_val						(v_muldivresp_val_0				),
+    .muldivresp_rdy						(muldivresp_rdy	&& v_isvec_X3hl			),
+                                                
+		.stall_Xhl								(stall_Xhl						),
+    .stall_Mhl								(stall_Mhl						),
+    .stall_X2hl								(stall_X2hl						),
+    .stall_X3hl               (stall_X3hl           )
+	);
+
+  riscv_CoreDpathPipeMulDiv v_pmuldiv_1
+	(
+	  .clk											(clk									),
+    .reset										(reset								),
+    
+		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
+    .muldivreq_msg_a					(v_op0_mux_out_Xhl[63:32]	),
+    .muldivreq_msg_b					(v_op0_mux_out_Xhl[63:32] ),
+    .muldivreq_val						(muldivreq_val && v_isvec_Dhl				),
+    .muldivreq_rdy						(v_muldivreq_rdy_1				),
+                                                   
+    .muldivresp_msg_result		(v_muldivresp_msg_result_1_X3hl),
+    .muldivresp_val						(v_muldivresp_val_1				),
+    .muldivresp_rdy						(muldivresp_rdy	&& v_isvec_X3hl			),
                                                 
 		.stall_Xhl								(stall_Xhl						),
     .stall_Mhl								(stall_Mhl						),
@@ -843,12 +893,12 @@ module riscv_CoreDpath
 		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
     .muldivreq_msg_a					(v_op0_mux_out_Xhl[95:64]	),
     .muldivreq_msg_b					(v_op0_mux_out_Xhl[95:64] ),
-    .muldivreq_val						(muldivreq_val				),
-    .muldivreq_rdy						(muldivreq_rdy				),
+    .muldivreq_val						(muldivreq_val && v_isvec_Dhl				),
+    .muldivreq_rdy						(v_muldivreq_rdy_2				),
                                                    
-    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
-    .muldivresp_val						(muldivresp_val				),
-    .muldivresp_rdy						(muldivresp_rdy				),
+    .muldivresp_msg_result		(v_muldivresp_msg_result_2_X3hl),
+    .muldivresp_val						(v_muldivresp_val_2				),
+    .muldivresp_rdy						(muldivresp_rdy	&& v_isvec_X3hl			),
                                                 
 		.stall_Xhl								(stall_Xhl						),
     .stall_Mhl								(stall_Mhl						),
@@ -856,22 +906,20 @@ module riscv_CoreDpath
     .stall_X3hl               (stall_X3hl           )
 	);
 
-  // Multiplier/Divider
-	
-	riscv_CoreDpathPipeMulDiv pmuldivv1
+  riscv_CoreDpathPipeMulDiv v_pmuldiv_3
 	(
 	  .clk											(clk									),
     .reset										(reset								),
     
 		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
-    .muldivreq_msg_a					(op0_mux_out_Dhl			),
-    .muldivreq_msg_b					(op1_mux_out_Dhl			),
-    .muldivreq_val						(muldivreq_val				),
-    .muldivreq_rdy						(muldivreq_rdy				),
+    .muldivreq_msg_a					(v_op0_mux_out_Xhl[127:96]	),
+    .muldivreq_msg_b					(v_op0_mux_out_Xhl[127:96] ),
+    .muldivreq_val						(muldivreq_val && v_isvec_Dhl				),
+    .muldivreq_rdy						(v_muldivreq_rdy_3				),
                                                    
-    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
-    .muldivresp_val						(muldivresp_val				),
-    .muldivresp_rdy						(muldivresp_rdy				),
+    .muldivresp_msg_result		(v_muldivresp_msg_result_3_X3hl),
+    .muldivresp_val						(v_muldivresp_val_3				),
+    .muldivresp_rdy						(muldivresp_rdy	&& v_isvec_X3hl			),
                                                 
 		.stall_Xhl								(stall_Xhl						),
     .stall_Mhl								(stall_Mhl						),
@@ -879,51 +927,13 @@ module riscv_CoreDpath
     .stall_X3hl               (stall_X3hl           )
 	);
 
-  // Multiplier/Divider
-	
-	riscv_CoreDpathPipeMulDiv pmuldivv2
-	(
-	  .clk											(clk									),
-    .reset										(reset								),
-    
-		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
-    .muldivreq_msg_a					(op0_mux_out_Dhl			),
-    .muldivreq_msg_b					(op1_mux_out_Dhl			),
-    .muldivreq_val						(muldivreq_val				),
-    .muldivreq_rdy						(muldivreq_rdy				),
-                                                   
-    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
-    .muldivresp_val						(muldivresp_val				),
-    .muldivresp_rdy						(muldivresp_rdy				),
-                                                
-		.stall_Xhl								(stall_Xhl						),
-    .stall_Mhl								(stall_Mhl						),
-    .stall_X2hl								(stall_X2hl						),
-    .stall_X3hl               (stall_X3hl           )
-	);
-
-  // Multiplier/Divider
-	
-	riscv_CoreDpathPipeMulDiv pmuldivv3
-	(
-	  .clk											(clk									),
-    .reset										(reset								),
-    
-		.muldivreq_msg_fn					(muldivreq_msg_fn_Dhl	),
-    .muldivreq_msg_a					(op0_mux_out_Dhl			),
-    .muldivreq_msg_b					(op1_mux_out_Dhl			),
-    .muldivreq_val						(muldivreq_val				),
-    .muldivreq_rdy						(muldivreq_rdy				),
-                                                   
-    .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
-    .muldivresp_val						(muldivresp_val				),
-    .muldivresp_rdy						(muldivresp_rdy				),
-                                                
-		.stall_Xhl								(stall_Xhl						),
-    .stall_Mhl								(stall_Mhl						),
-    .stall_X2hl								(stall_X2hl						),
-    .stall_X3hl               (stall_X3hl           )
-	);
+  assign muldivresp_val 
+      = (!v_isvec_X3hl) ? s_muldivresp_val 
+      :                 (v_muldivresp_val_0 && v_muldivresp_val_1 && v_muldivresp_val_2 && v_muldivresp_val_3);
+  
+  assign muldivreq_rdy
+      = (!v_isvec_Dhl) ? s_muldivreq_rdy 
+      :                 (v_muldivresq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3);
 
 
 endmodule
