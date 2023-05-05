@@ -168,7 +168,6 @@
 `define RISCV_INST_MSG_VMULHSU  32'b100110_?_?????_?????_000_?????_1010111
 `define RISCV_INST_MSG_VMACC    32'b101101_?_?????_?????_000_?????_1010111
 `define RISCV_INST_MSG_VNMSAC   32'b101111_?_?????_?????_000_?????_1010111
-`define RISCV_INST_MSG_VNMSAC   32'b101111_?_?????_?????_000_?????_1010111
 `define RISCV_INST_MSG_VMADD    32'b101001_?_?????_?????_000_?????_1010111
 `define RISCV_INST_MSG_VNMSUB   32'b101011_?_?????_?????_000_?????_1010111
 
@@ -237,10 +236,12 @@
 // Control bundle
 //------------------------------------------------------------------------
 
-`define RISCV_INST_MSG_CS_SZ      42
-`define RISCV_INST_MSG_IS_VOP     41:41
-`define RISCV_INST_MSG_IS_VSTORE  40:40
-`define RISCV_INST_MSG_IS_VCONF   39:39
+`define RISCV_INST_MSG_CS_SZ      46
+`define RISCV_INST_MSG_IS_VOP     45:45
+`define RISCV_INST_MSG_MAC_FN     44:43
+`define RISCV_INST_MSG_MEM_STRIDED 42:42
+`define RISCV_INST_MSG_IS_VSTORE  41:41
+`define RISCV_INST_MSG_VCONF_TYPE 40:39
 `define RISCV_INST_MSG_INST_VAL   38:38
 `define RISCV_INST_MSG_J_EN       37:37
 `define RISCV_INST_MSG_BR_SEL     36:34
