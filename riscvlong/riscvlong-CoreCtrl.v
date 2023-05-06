@@ -442,7 +442,7 @@ module riscv_CoreCtrl
       //                          is_vec
       //                          mac_fn
       //                          mem_strided
-      //                          vstr                    j     br       pc      op0      rs1 op1       rs2 alu       md       md md     ex      mem  mem   memresp wb      rf      csr
+      //                          vstr                   j     br       pc      op0      rs1 op1       rs2 alu       md       md md     ex      mem  mem   memresp wb      rf      csr
       //                          vconf              val taken type     muxsel  muxsel   en  muxsel    en  fn        fn       en muxsel muxsel  rq   len   muxsel  muxsel  wen wa  wen
       `RISCV_INST_MSG_LUI     :cs= {n,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_0,    n,  bm_imm_u, n,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
       `RISCV_INST_MSG_AUIPC   :cs= {n,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_pc,   n,  bm_imm_u, n,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
@@ -532,9 +532,7 @@ module riscv_CoreCtrl
 
 		endcase
 
-
   end
-
 
   // VECTOR CONTROLS - need to be modified as per updated control bundle - Mihir
   wire       v_isvec = cs[`RISCV_INST_MSG_IS_VOP]; 
