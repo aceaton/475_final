@@ -616,41 +616,48 @@ module riscv_CoreCtrl
   //----------------------------------------------------------------------
   // Vector Register File Indexing Logic
   //----------------------------------------------------------------------
-  // When we've decoded a vector instruction, stall F on the next clock cycle
-  // and increment v_idx_Dhl until we've gone over the entire length of the vector
-
-  // I think this might be problematic in that it starts stalling in F on the next
-  // clock cycle. I think ending the stall on the next cycle makes sense though?
+  // When we've decoded a vector instruction, stall F and increment v_idx_Dhl
+  // until we've gone over the entire length of the vector
+  // reset if there's a taken branch in Xhl
+  // **stop incrementing counter 1 cycle early to prevent 1 cycle delays**
 
   wire [5:0] VLR_temp;  // TODO: implement vector length register
 
   // this should work due to the way integer division truncates
   wire [3:0] num_iters = VLR_temp / 6'd4;
 
-  reg v_stall_Dhl; // are we in the middle of v op? yes -> stall_Fhl = 1
+  // 1 when counter is 1 cycle from finishing
+  reg v_idx_counter_done;
+
+  // stall if vector op in decode and counter isn't done
+  wire v_stall_Dhl = v_isvec_Dhl && !v_idx_counter_done;
 
   // increment vector register file element pointer by 1
   wire [3:0] v_idx_Dhl_next = v_idx_Dhl + 4'b1;
   
   always @ ( posedge clk ) begin
-    if ( reset ) begin
+    // reset if reset or taken branch in Xhl
+    if ( reset || brj_taken_Xhl) begin
       v_idx_Dhl <= 4'd0;
-      v_stall_Dhl <= 1'b0;
+      v_idx_counter_done <= 1'b0; // default is unfinished state
     end
 
-    // if vector operation
+    // if vector op in D
     else if v_isvec_Dhl begin
 
       // increment vector register index if less than number of iterations
       if (v_idx_Dhl < num_iters) begin
+        // if 1 away from finishing, counter is done on next cycle
+        if v_idx_Dhl == (num_iters - 4'd1) begin
+          v_idx_counter_done <= 1'b1;
+        end
         v_idx_Dhl <= v_idx_Dhl_next;
-        v_stall_Dhl <= 1'b1;  // stall in F next cycle
       end
 
-      // otherwise, reset vector register index
+      // if done incrementing, reset 
       else begin
         v_idx_Dhl <= 4'd0;
-        v_stall_Dhl <= 1'b0; // end stall in F next cycle
+        v_idx_counter_done <= 1'b0; // prepare to receive next v op
       end
     end
   end
