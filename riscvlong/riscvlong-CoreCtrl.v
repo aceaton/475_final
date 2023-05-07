@@ -535,6 +535,43 @@ module riscv_CoreCtrl
 
   end
 
+  // Accumulate decode logic
+
+  reg [1:0] acc_stage; // stage 0: reset, stage 1: multiply, stage 2: add/sub
+  reg acc_next_op; // 0: add, 1: sub
+  reg acc_vd_or_vs2; // 0: vd, 1: vs2
+  
+
+  wire is_acc = (cs[`RISCV_INST_MSG_MAC_FN] >= 0 && cs[`RISCV_INST_MSG_MAC_FN] <= 3) ? 1'b1 : 1'b0;  
+
+  always @(posedge) begin
+    if(!reset) begin
+      if(is_acc || acc_stage == 2'd1) begin
+        acc_stage <= 2'd1;
+        if(cs[`RISCV_INST_MSG_MAC_FN] = vmacc) begin
+          acc_next_op <= 1'b0;
+          acc_vd_or_vs2 <= 1'b0;
+          cs <= `RISCV_INST_MSG_MUL;
+        end
+        else if(cs[`RISCV_INST_MSG_MAC_FN] = vnmsac) begin
+          acc_next_op <= 1'b1;
+          acc_vd_or_vs2 <= 1'b0;
+          cs <= `RISCV_INST_MSG_MUL;
+        end
+        else if(cs[`RISCV_INST_MSG_MAC_FN] = vmadd) begin
+          acc_next_op <= 1'b0;
+          acc_vd_or_vs2 <= 1'b1;
+          cs <= `RISCV_INST_MSG_MUL;
+        end
+        else if(cs[`RISCV_INST_MSG_MAC_FN] = vnmsub) begin
+          acc_next_op <= 1'b1;
+          acc_vd_or_vs2 <= 1'b1;
+          cs <= `RISCV_INST_MSG_MUL;
+        end
+      end
+    end
+  end
+
   // VECTOR CONTROLS - need to be modified as per updated control bundle - Mihir
   wire       v_isvec_Dhl = cs[`RISCV_INST_MSG_IS_VOP]; 
   wire       v_isvstore = cs[`RISCV_INST_MSG_IS_VSTORE]; 
