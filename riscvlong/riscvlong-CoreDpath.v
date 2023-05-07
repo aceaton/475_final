@@ -221,6 +221,7 @@ module riscv_CoreDpath
   wire [ 4:0] rf_raddr1_Dhl 
       = (v_isstore_Dhl && v_isvec_Dhl) rf_waddr_Dhl 
       :                                inst_rs2_Dhl;
+      // add control for hanging rs2 to vd in acc insts
   wire [31:0] rf_rdata1_Dhl;
 
   assign imemreq_msg_addr
