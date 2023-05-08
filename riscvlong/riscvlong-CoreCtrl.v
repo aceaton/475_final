@@ -697,6 +697,12 @@ module riscv_CoreCtrl
 
   wire [5:0] VLR_temp;  // TODO: implement vector length register
 
+  wire [1:0] v_lanes_tail = VLR_temp % 6'd4; // number of lanes needed for last chunk of elements sent to X
+
+  // the number of lanes to enable
+  // if we're on the last block, use v_lanes_tail, otherwise use 3 (all lanes)
+  assign v_lanes_Dhl = v_idx_Dhl == num_iters ? v_lanes_tail : 2'd3;
+  
   // this should work due to the way integer division truncates
   wire [3:0] num_iters = VLR_temp / 6'd4;
 
@@ -735,8 +741,6 @@ module riscv_CoreCtrl
       end
     end
   end
-  // GET LANES
-  // wire v_lanes_Dhl = 
 
   //----------------------------------------------------------------------
   // Squash and Stall Logic
