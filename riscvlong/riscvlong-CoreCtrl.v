@@ -735,6 +735,8 @@ module riscv_CoreCtrl
       end
     end
   end
+  // GET LANES
+  // wire v_lanes_Dhl = 
 
   //----------------------------------------------------------------------
   // Squash and Stall Logic
@@ -750,50 +752,56 @@ module riscv_CoreCtrl
 
   // Stall for data hazards if load-use or mul-use
 
+  // added isvec
+  // wait this is a problem bc we need to check if source is vec
+  // adding vrs1 and vrs2 signals, vds is equal to isvec
   wire stall_hazard_Dhl   = inst_val_Dhl && (
-                            ( rs1_en_Dhl && inst_val_Xhl && is_ld_Xhl
+                            ( rs1_en_Dhl && inst_val_Xhl && is_ld_Xhl && (vrs1 == v_isvec_Xhl)
                               && ( rs1_addr_Dhl == rf_waddr_Xhl )
                               && ( rf_waddr_Xhl != 5'd0 ) )
-                         || ( rs2_en_Dhl && inst_val_Xhl && is_ld_Xhl
+                         || ( rs2_en_Dhl && inst_val_Xhl && is_ld_Xhl && (vrs2 == v_isvec_Xhl)
                               && ( rs2_addr_Dhl == rf_waddr_Xhl )
                               && ( rf_waddr_Xhl != 5'd0 ) ) 
-												 || ( rs1_en_Dhl && inst_val_Xhl && execute_mux_sel_Xhl
+												 || ( rs1_en_Dhl && inst_val_Xhl && execute_mux_sel_Xhl && (vrs1 == v_isvec_Xhl)
                               && ( rs1_addr_Dhl == rf_waddr_Xhl )
                               && ( rf_waddr_Xhl != 5'd0 ) )
-												 || ( rs1_en_Dhl && inst_val_Mhl && execute_mux_sel_Mhl
+												 || ( rs1_en_Dhl && inst_val_Mhl && execute_mux_sel_Mhl && (vrs1 == v_isvec_Mhl)
                               && ( rs1_addr_Dhl == rf_waddr_Mhl )
                               && ( rf_waddr_Mhl != 5'd0 ) )
-												 || ( rs1_en_Dhl && inst_val_X2hl && execute_mux_sel_X2hl
+												 || ( rs1_en_Dhl && inst_val_X2hl && execute_mux_sel_X2hl && (vrs1 == v_isvec_X2hl)
                               && ( rs1_addr_Dhl == rf_waddr_X2hl )
                               && ( rf_waddr_X2hl != 5'd0 ) )
-												 || ( rs2_en_Dhl && inst_val_Xhl && execute_mux_sel_Xhl
+												 || ( rs2_en_Dhl && inst_val_Xhl && execute_mux_sel_Xhl && (vrs2 == v_isvec_Xhl)
                               && ( rs2_addr_Dhl == rf_waddr_Xhl )
                               && ( rf_waddr_Xhl != 5'd0 ) )
-												 || ( rs2_en_Dhl && inst_val_Mhl && execute_mux_sel_Mhl
+												 || ( rs2_en_Dhl && inst_val_Mhl && execute_mux_sel_Mhl && (vrs2 == v_isvec_Mhl)
                               && ( rs2_addr_Dhl == rf_waddr_Mhl )
                               && ( rf_waddr_Mhl != 5'd0 ) )
-												 || ( rs2_en_Dhl && inst_val_X2hl && execute_mux_sel_X2hl
+												 || ( rs2_en_Dhl && inst_val_X2hl && execute_mux_sel_X2hl && (vrs2 == v_isvec_X2hl)
                               && ( rs2_addr_Dhl == rf_waddr_X2hl )
                               && ( rf_waddr_X2hl != 5'd0 ) )
 												 );
 
+wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhll;
+
 	// Bypassing logic from X, M, X2, X3, W to D
 	
 	wire rdata0_byp_mux_sel_Dhl
-		= ( rs1_en_Dhl && rf_wen_Xhl && (rs1_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl ) ? 3'd1
-	  : ( rs1_en_Dhl && rf_wen_Mhl && (rs1_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl ) ? 3'd2
-	  : ( rs1_en_Dhl && rf_wen_X2hl && (rs1_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl ) ? 3'd3
-	  : ( rs1_en_Dhl && rf_wen_X3hl && (rs1_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl ) ? 3'd4
-	  : ( rs1_en_Dhl && rf_wen_Whl && (rs1_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl ) ? 3'd5
+		= ( rs1_en_Dhl && rf_wen_Xhl && (rs1_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl && (vrs1 == v_isvec_Xhl) ) ? 3'd1
+	  : ( rs1_en_Dhl && rf_wen_Mhl && (rs1_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl  && (vrs1 == v_isvec_Mhl)) ? 3'd2
+	  : ( rs1_en_Dhl && rf_wen_X2hl && (rs1_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl  && (vrs1 == v_isvec_X2hl)) ? 3'd3
+	  : ( rs1_en_Dhl && rf_wen_X3hl && (rs1_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl  && (vrs1 == v_isvec_X3hl)) ? 3'd4
+	  : ( rs1_en_Dhl && rf_wen_Whl && (rs1_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl  && (vrs1 == v_isvec_Whl)) ? 3'd5
 	  :  3'd0;	
 
   wire rdata1_byp_mux_sel_Dhl 	
-		= ( rs2_en_Dhl && rf_wen_Xhl && (rs2_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl ) ? 3'd1
-	  : ( rs2_en_Dhl && rf_wen_Mhl && (rs2_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl ) ? 3'd2
-	  : ( rs2_en_Dhl && rf_wen_X2hl && (rs2_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl ) ? 3'd3
-	  : ( rs2_en_Dhl && rf_wen_X3hl && (rs2_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl ) ? 3'd4
-	  : ( rs2_en_Dhl && rf_wen_Whl && (rs2_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl ) ? 3'd5
+		= ( rs2_en_Dhl && rf_wen_Xhl && (rs2_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl &&(vrs2 == v_isvec_Xhl)) ? 3'd1
+	  : ( rs2_en_Dhl && rf_wen_Mhl && (rs2_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl &&(vrs2 == v_isvec_Mhl)) ? 3'd2
+	  : ( rs2_en_Dhl && rf_wen_X2hl && (rs2_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl&&(vrs2 == v_isvec_X2hl) ) ? 3'd3
+	  : ( rs2_en_Dhl && rf_wen_X3hl && (rs2_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl &&(vrs2 == v_isvec_X3hl)) ? 3'd4
+	  : ( rs2_en_Dhl && rf_wen_Whl && (rs2_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl &&(vrs2 == v_isvec_Whl)) ? 3'd5
 	  :  3'd0;	
+
 
   // Aggregate Stall Signal
 
@@ -840,6 +848,11 @@ module riscv_CoreCtrl
 
   reg        bubble_Xhl;
 
+  //vec
+  reg v_isvec_Xhl;
+  reg v_idx_Xhl;
+  reg v_lanes_Xhl;
+
   // Pipeline Controls
 
   always @ ( posedge clk ) begin
@@ -867,6 +880,10 @@ module riscv_CoreCtrl
 			is_ld_Xhl						 <= is_ld_Dhl;
 
       bubble_Xhl           <= bubble_next_Dhl;
+  
+      v_isvec_Xhl           <= v_isvec_Dhl;
+      v_idx_Xhl           <= v_idx_Dhl;
+      v_lanes_Xhl <=      v_lanes_Dhl;
     end
 
   end
@@ -948,6 +965,11 @@ module riscv_CoreCtrl
 
   reg        bubble_Mhl;
 
+  //vec
+  reg v_isvec_Mhl;
+  reg v_idx_Mhl;
+  reg v_lanes_Mhl;
+
   // Pipeline Controls
 
   always @ ( posedge clk ) begin
@@ -967,6 +989,10 @@ module riscv_CoreCtrl
       execute_mux_sel_Mhl  <= execute_mux_sel_Xhl;
       
       bubble_Mhl           <= bubble_next_Xhl;
+
+      v_isvec_Mhl           <= v_isvec_Xhl;
+      v_idx_Mhl           <= v_idx_Xhl;
+      v_lanes_Mhl <=      v_lanes_Xhl;
     end
     dmemreq_val_Mhl <= dmemreq_val;
   end
@@ -1020,6 +1046,11 @@ module riscv_CoreCtrl
   reg        execute_mux_sel_X2hl;
 
   reg        bubble_X2hl;
+
+  //vec
+  reg v_isvec_X2hl;
+  reg v_idx_X2hl;
+  reg v_lanes_X2hl;
   
 	wire inst_val_X2hl = ( !bubble_X2hl && !squash_X2hl );
   wire squash_X2hl = 1'b0;
@@ -1044,6 +1075,10 @@ module riscv_CoreCtrl
       
 
       bubble_X2hl       <= bubble_next_Mhl;   
+
+      v_isvec_X2hl           <= v_isvec_Mhl;
+      v_idx_X2hl           <= v_idx_Mhl;
+      v_lanes_X2hl <=      v_lanes_Mhl;
     end
     dmemresp_queue_val_Mhl <= dmemresp_queue_val_next_Mhl;
   end
@@ -1062,6 +1097,11 @@ module riscv_CoreCtrl
   reg        execute_mux_sel_X3hl;
 
   reg        bubble_X3hl;
+
+  //vec
+  reg v_isvec_X3hl;
+  reg v_idx_X3hl;
+  reg v_lanes_X3hl;
   
 	wire inst_val_X3hl = ( !bubble_X3hl && !squash_X3hl );
   wire squash_X3hl = 1'b0;
@@ -1084,6 +1124,9 @@ module riscv_CoreCtrl
 			muldiv_mux_sel_X3hl   <= muldiv_mux_sel_X2hl;
       execute_mux_sel_X3hl  <= execute_mux_sel_X2hl;
       
+      v_isvec_X3hl           <= v_isvec_X2hl;
+      v_idx_X3hl           <= v_idx_X2hl;
+      v_lanes_X3hl <=      v_lanes_X2hl;
 
 			// assume squash == 0 and stall == 0
       bubble_X3hl       <= bubble_X2hl;
@@ -1102,6 +1145,11 @@ module riscv_CoreCtrl
 
   reg        bubble_Whl;
 
+  //vec
+  reg v_isvec_Whl;
+  reg v_idx_Whl;
+  reg v_lanes_Whl;
+
   // Pipeline Controls
 
   always @ ( posedge clk ) begin
@@ -1114,6 +1162,10 @@ module riscv_CoreCtrl
       rf_waddr_Whl     <= rf_waddr_X3hl;
       csr_wen_Whl      <= csr_wen_X3hl;
       csr_addr_Whl     <= csr_addr_X3hl;
+
+      v_isvec_Whl           <= v_isvec_X3hl;
+      v_idx_Whl           <= v_idx_X3hl;
+      v_lanes_Whl <=      v_lanes_X3hl;
 
 			// assume squash == 0 and stall == 0
       bubble_Whl       <= bubble_X3hl;

@@ -269,24 +269,24 @@ module riscv_CoreDpath
 
 	// vector rdata0 bypass
 	wire [127:0] v_rdata0_byp_mux_out_Dhl
-		= ( v_rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata0_Dhl
-		: ( v_rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
-	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
-	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
-		: ( v_rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
-		: ( v_rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
-    : ( v_rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
+		= ( rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata0_Dhl
+		: ( rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
+	  : ( rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
+	  : ( rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
+		: ( rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
+		: ( rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+    : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
 		:																			 128'bx;	
 
   // vector rdata0 bypass
 	wire [127:0] v_rdata1_byp_mux_out_Dhl
-		= ( v_rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata1_Dhl
-		: ( v_rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
-	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
-	  : ( v_rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
-		: ( v_rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
-		: ( v_rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
-    : ( v_rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
+		= ( rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata1_Dhl
+		: ( rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
+	  : ( rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
+	  : ( rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
+		: ( rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
+		: ( rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+    : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
 		:																			 128'bx;	
 
   // Operand 0 mux
