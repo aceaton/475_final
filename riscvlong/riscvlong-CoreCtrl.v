@@ -751,11 +751,36 @@ module riscv_CoreCtrl
   wire stall_muldiv_Dhl = ( muldivreq_val_Dhl && inst_val_Dhl && !muldivreq_rdy );
 
   // Stall for data hazards if load-use or mul-use
-
+  wire s_stall_hazard_Dhl   = inst_val_Dhl && (
+                            ( rs1_en_Dhl && inst_val_Xhl && is_ld_Xhl
+                              && ( rs1_addr_Dhl == rf_waddr_Xhl )
+                              && ( rf_waddr_Xhl != 5'd0 ) )
+                         || ( rs2_en_Dhl && inst_val_Xhl && is_ld_Xhl
+                              && ( rs2_addr_Dhl == rf_waddr_Xhl )
+                              && ( rf_waddr_Xhl != 5'd0 ) ) 
+												 || ( rs1_en_Dhl && inst_val_Xhl && execute_mux_sel_Xhl
+                              && ( rs1_addr_Dhl == rf_waddr_Xhl )
+                              && ( rf_waddr_Xhl != 5'd0 ) )
+												 || ( rs1_en_Dhl && inst_val_Mhl && execute_mux_sel_Mhl
+                              && ( rs1_addr_Dhl == rf_waddr_Mhl )
+                              && ( rf_waddr_Mhl != 5'd0 ) )
+												 || ( rs1_en_Dhl && inst_val_X2hl && execute_mux_sel_X2hl
+                              && ( rs1_addr_Dhl == rf_waddr_X2hl )
+                              && ( rf_waddr_X2hl != 5'd0 ) )
+												 || ( rs2_en_Dhl && inst_val_Xhl && execute_mux_sel_Xhl
+                              && ( rs2_addr_Dhl == rf_waddr_Xhl )
+                              && ( rf_waddr_Xhl != 5'd0 ) )
+												 || ( rs2_en_Dhl && inst_val_Mhl && execute_mux_sel_Mhl
+                              && ( rs2_addr_Dhl == rf_waddr_Mhl )
+                              && ( rf_waddr_Mhl != 5'd0 ) )
+												 || ( rs2_en_Dhl && inst_val_X2hl && execute_mux_sel_X2hl
+                              && ( rs2_addr_Dhl == rf_waddr_X2hl )
+                              && ( rf_waddr_X2hl != 5'd0 ) )
+												 );
   // added isvec
   // wait this is a problem bc we need to check if source is vec
   // adding vrs1 and vrs2 signals, vds is equal to isvec
-  wire stall_hazard_Dhl   = inst_val_Dhl && (
+  wire v_stall_hazard_Dhl   = inst_val_Dhl && (
                             ( rs1_en_Dhl && inst_val_Xhl && is_ld_Xhl && (vrs1 == v_isvec_Xhl)
                               && ( rs1_addr_Dhl == rf_waddr_Xhl )
                               && ( rf_waddr_Xhl != 5'd0 ) )
@@ -782,7 +807,7 @@ module riscv_CoreCtrl
                               && ( rf_waddr_X2hl != 5'd0 ) )
 												 );
 
-wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhll;
+  wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhll;
 
 	// Bypassing logic from X, M, X2, X3, W to D
 	
@@ -881,9 +906,9 @@ wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhll;
 
       bubble_Xhl           <= bubble_next_Dhl;
   
-      v_isvec_Xhl           <= v_isvec_Dhl;
-      v_idx_Xhl           <= v_idx_Dhl;
-      v_lanes_Xhl <=      v_lanes_Dhl;
+      v_isvec_Xhl          <= v_isvec_Dhl;
+      v_idx_Xhl            <= v_idx_Dhl;
+      v_lanes_Xhl <=       v_lanes_Dhl;
     end
 
   end
@@ -911,12 +936,11 @@ wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhll;
   wire blt_taken_Xhl  = ( ( br_sel_Xhl == br_blt ) && branch_cond_lt_Xhl );
   wire beq_taken_Xhl  = ( ( br_sel_Xhl == br_beq ) && branch_cond_eq_Xhl );
   wire bge_taken_Xhl  = ( ( br_sel_Xhl == br_bge ) && branch_cond_ge_Xhl );
-  wire bltu_taken_Xhl  = ( ( br_sel_Xhl == br_bltu ) && branch_cond_ltu_Xhl );
-  wire bgeu_taken_Xhl  = ( ( br_sel_Xhl == br_bgeu ) && branch_cond_geu_Xhl ); 
+  wire bltu_taken_Xhl = ( ( br_sel_Xhl == br_bltu ) && branch_cond_ltu_Xhl );
+  wire bgeu_taken_Xhl = ( ( br_sel_Xhl == br_bgeu ) && branch_cond_geu_Xhl ); 
 	
 	wire any_br_taken_Xhl
-    = ( bne_taken_Xhl || blt_taken_Xhl || beq_taken_Xhl || bge_taken_Xhl || bltu_taken_Xhl || bgeu_taken_Xhl
-      );
+    = ( bne_taken_Xhl || blt_taken_Xhl || beq_taken_Xhl || bge_taken_Xhl || bltu_taken_Xhl || bgeu_taken_Xhl);
 
   wire brj_taken_Xhl = ( inst_val_Xhl && any_br_taken_Xhl );
 
