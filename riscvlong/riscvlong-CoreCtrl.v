@@ -429,7 +429,8 @@ module riscv_CoreCtrl
   wire [4:0] rs1 = inst_rs1_Dhl;
   wire [4:0] rs2 = inst_rs2_Dhl;
   wire [4:0] rd  = inst_rd_Dhl;
-
+  wire [4:0] vrs1  = inst_rs1_Dhl;
+  wire [4:0] vrs2  = inst_rs2_Dhl;
   // Instruction Decode
 
   localparam cs_sz = `RISCV_INST_MSG_CS_SZ;
