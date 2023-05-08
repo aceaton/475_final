@@ -105,9 +105,9 @@ module riscv_CoreCtrl
   output         v_isvec_X3hl,
   output   [3:0] v_idx_Dhl,
   output   [3:0] v_idx_Whl,
-  output v_rinter0_Dhl,
-  output v_rinter1_Dhl,
-  output v_winter_Whl,
+  output         v_rinter0_Dhl,
+  output         v_rinter1_Dhl,
+  output         v_winter_Whl,
 
   output         v_dmemresp_queue_en_0_Mhl,
   output         v_dmemresp_queue_val_0_Mhl,
@@ -117,6 +117,12 @@ module riscv_CoreCtrl
   output         v_dmemresp_queue_val_2_Mhl,
   output         v_dmemresp_queue_en_3_Mhl,
   output         v_dmemresp_queue_val_3_Mhl,
+
+  input          v_muldivreq_rdy_0,
+  input          v_muldivreq_rdy_1,
+  input          v_muldivreq_rdy_2,
+  input          v_muldivreq_rdy_3,
+
 
   // Control Signals (dpath->ctrl)
 
@@ -754,6 +760,10 @@ module riscv_CoreCtrl
   // Stall in D if muldiv unit is not ready and there is a valid request
 
   wire stall_muldiv_Dhl = ( muldivreq_val_Dhl && inst_val_Dhl && !muldivreq_rdy );
+  
+  // Stall in D if one of the vector muldiv units isn't ready and there are valid requests
+  wire v_muldivreq_rdy = v_muldivreq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3
+  wire stall_vmuldiv_Dhl = muldivreq_val_Dhl && inst_val_Dhl && !v_muldivreq_rdy && v_isvec_Dhl; 
 
   // Stall for data hazards if load-use or mul-use
   wire s_stall_hazard_Dhl   = inst_val_Dhl && (
@@ -785,6 +795,7 @@ module riscv_CoreCtrl
   // added isvec
   // wait this is a problem bc we need to check if source is vec
   // adding vrs1 and vrs2 signals, vds is equal to isvec
+  // I think the scalar and vector stall signals can be the same - Mark
   wire v_stall_hazard_Dhl   = inst_val_Dhl && (
                             ( rs1_en_Dhl && inst_val_Xhl && is_ld_Xhl && (vrs1 == v_isvec_Xhl)
                               && ( rs1_addr_Dhl == rf_waddr_Xhl )
@@ -837,6 +848,7 @@ module riscv_CoreCtrl
 
   assign stall_Dhl = ( stall_Xhl
                   ||   stall_muldiv_Dhl
+                  ||   stall_vmuldiv_Dhl
                   ||   stall_hazard_Dhl );
 
   // Next bubble bit

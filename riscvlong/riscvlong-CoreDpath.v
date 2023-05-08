@@ -104,6 +104,10 @@ module riscv_CoreDpath
   input         v_dmemresp_queue_val_2_Mhl,
   input         v_dmemresp_queue_en_3_Mhl,
   input         v_dmemresp_queue_val_3_Mhl,
+  output        v_muldivreq_rdy_0,
+  output        v_muldivreq_rdy_1,
+  output        v_muldivreq_rdy_2,
+  output        v_muldivreq_rdy_3,
 
   // Control Signals (dpath->ctrl)
 
