@@ -702,17 +702,17 @@ module riscv_CoreCtrl
   // reset if there's a taken branch in Xhl
   // **stop incrementing counter 1 cycle early to prevent 1 cycle delays**
 
-  wire [5:0] VLR_temp;  // TODO: implement vector length register
+  // TODO: implement vector length register
+  wire [5:0] VLR_temp;  
 
-  wire [1:0] v_lanes_tail = VLR_temp % 6'd4; // number of lanes needed for last chunk of elements sent to X
+  // a cheeky way to divide VLR by 4 and truncate to 4 bits
+  // number of iterations we need to send every element in the vector to X
+  wire [3:0] num_iters = VLR_temp[5:2];
 
   // the number of lanes to enable
-  // if we're on the last block, use v_lanes_tail, otherwise use 3 (all lanes)
-  assign v_lanes_Dhl = v_idx_Dhl == num_iters ? v_lanes_tail : 2'd3;
+  // if we're on the last chunk of elements, use VLR % 4, otherwise use all lanes
+  assign v_lanes_Dhl = (v_idx_Dhl == num_iters) ? (VLR_temp % 6'd4)[] : 2'd3;
   
-  // this should work due to the way integer division truncates
-  wire [3:0] num_iters = VLR_temp / 6'd4;
-
   // 1 when counter is 1 cycle from finishing
   reg v_idx_counter_done;
 
@@ -758,12 +758,9 @@ module riscv_CoreCtrl
   wire squash_Dhl = ( inst_val_Xhl && brj_taken_Xhl );
 
   // Stall in D if muldiv unit is not ready and there is a valid request
-
-  wire stall_muldiv_Dhl = ( muldivreq_val_Dhl && inst_val_Dhl && !muldivreq_rdy );
-  
-  // Stall in D if one of the vector muldiv units isn't ready and there are valid requests
   wire v_muldivreq_rdy = v_muldivreq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3
-  wire stall_vmuldiv_Dhl = muldivreq_val_Dhl && inst_val_Dhl && !v_muldivreq_rdy && v_isvec_Dhl; 
+
+  wire stall_muldiv_Dhl = muldivreq_val_Dhl && inst_val_Dhl && (!muldivreq_rdy || (!v_muldivreq_rdy && v_isvec_Dhl));
 
   // Stall for data hazards if load-use or mul-use
   wire s_stall_hazard_Dhl   = inst_val_Dhl && (
@@ -848,7 +845,6 @@ module riscv_CoreCtrl
 
   assign stall_Dhl = ( stall_Xhl
                   ||   stall_muldiv_Dhl
-                  ||   stall_vmuldiv_Dhl
                   ||   stall_hazard_Dhl );
 
   // Next bubble bit
@@ -974,8 +970,8 @@ module riscv_CoreCtrl
   wire stall_imem_Xhl = !imemreq_rdy;
 
   // Stall in X if dmem is not ready and there was a valid request
-
-  wire stall_dmem_Xhl = ( dmemreq_val_Xhl && inst_val_Xhl && !dmemreq_rdy );
+  wire v_dmemreq_rdy = v_dmemreq_rdy_0 && v_dmemreq_rdy_1 && v_dmemreq_rdy_2 && v_dmemreq_rdy_3
+  wire stall_dmem_Xhl = dmemreq_val_Xhl && inst_val_Xhl && (!dmemreq_rdy || (!v_dmemreq_rdy && v_isvec_Xhl));
 
   // Aggregate Stall Signal
 
