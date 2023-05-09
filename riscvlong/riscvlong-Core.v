@@ -143,6 +143,45 @@ module riscv_Core
   wire        branch_cond_geu_Xhl;
   wire [31:0] proc2csr_data_Whl;
 
+    // VECTOR ADDED
+  // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+  wire   [4:0] rf_waddr_Dhl;
+  wire   [1:0] v_lanes_Whl;// idx of last used lane of the 4 lanes - also even needed? for writeout ig
+  // input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
+  // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
+  wire   [3:0] v_rdata0_byp_mux_sel_Dhl; // NOTE: it's one more bit for the above reason
+	wire   [3:0] v_rdata1_byp_mux_sel_Dhl; // NOTE: it's one more bit 
+  // output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  // output   [1:0] v_op1_mux_sel_Dhl,
+  wire         v_isstore_Dhl;
+  wire         v_isvec_Whl; // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
+  // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
+  // meoryyy stuff
+  wire         v_isvec_Dhl;
+  wire         v_isvec_X3hl;
+  wire   [3:0] v_idx_Dhl;
+  wire   [3:0] v_idx_Whl;
+  // output         v_rinter0_Dhl,
+  // output         v_rinter1_Dhl,
+  // output         v_winter_Whl,
+
+  wire         v_vlr_mux_sel;
+
+  wire         v_dmemresp_queue_en_0_Mhl;
+  wire         v_dmemresp_queue_val_0_Mhl;
+  wire         v_dmemresp_queue_en_1_Mhl;
+  wire         v_dmemresp_queue_val_1_Mhl;
+  wire         v_dmemresp_queue_en_2_Mhl;
+  wire         v_dmemresp_queue_val_2_Mhl;
+  wire         v_dmemresp_queue_en_3_Mhl;
+  wire         v_dmemresp_queue_val_3_Mhl;
+
+  // wire          v_muldivreq_rdy_0;
+  // wire          v_muldivreq_rdy_1;
+  // wire          v_muldivreq_rdy_2;
+  // wire          v_muldivreq_rdy_3;
+  wire  [5:0] VLR_temp_Xhl;
+
   //----------------------------------------------------------------------
   // Pack Memory Request Messages
   //----------------------------------------------------------------------
@@ -328,7 +367,49 @@ module riscv_Core
 		.rdata0_byp_mux_sel_Dhl (rdata0_byp_mux_sel_Dhl),
 		.rdata1_byp_mux_sel_Dhl (rdata1_byp_mux_sel_Dhl),
 
+      // VECTOR ADDED
+  // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+    .rf_waddr_Dhl           (rf_waddr_Dhl ),
+    .v_lanes_Whl (v_lanes_Whl),
+     // idx of last used lane of the 4 lanes - also even needed? for writeout ig
+  // input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
+  // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
+    .v_rdata0_byp_mux_sel_Dhl (v_rdata0_byp_mux_sel_Dhl), // NOTE: it's one more bit for the above reason
+	  .v_rdata1_byp_mux_sel_Dhl (v_rdata1_byp_mux_sel_Dhl), // NOTE: it's one more bit 
+  // output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  // output   [1:0] v_op1_mux_sel_Dhl,
+    .v_isstore_Dhl (v_isstore_Dhl),
+    .v_isvec_Whl (v_isvec_Whl), // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
+  // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
+  // meoryyy stuff
+  .v_isvec_Dhl (v_isvec_Dhl),
+  .v_isvec_X3hl (v_isvec_X3hl),
+  .v_idx_Dhl (v_idx_Dhl),
+  .v_idx_Whl (v_idx_Whl),
+  // output         v_rinter0_Dhl,
+  // output         v_rinter1_Dhl,
+  // output         v_winter_Whl,
+
+  .v_vlr_mux_sel (v_vlr_mux_sel),
+
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_0_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_0_Mhl),
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_1_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_1_Mhl),
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_2_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_2_Mhl),
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_3_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_3_Mhl),
+
+  .v_muldivreq_rdy_0 (v_muldivreq_rdy_0),
+  .v_muldivreq_rdy_1 (v_muldivreq_rdy_1),
+  .v_muldivreq_rdy_2 (v_muldivreq_rdy_2),
+  .v_muldivreq_rdy_3 (v_muldivreq_rdy_3),
+
+
+
     // Control Signals (dpath->ctrl)
+    .VLR_temp_Xhl (VLR_temp_Xhl),
 
     .branch_cond_eq_Xhl	    (branch_cond_eq_Xhl),
     .branch_cond_ne_Xhl	    (branch_cond_ne_Xhl),
@@ -410,6 +491,50 @@ module riscv_Core
 		.stall_X3hl             (stall_X3hl),
 		.rdata0_byp_mux_sel_Dhl (rdata0_byp_mux_sel_Dhl),
 		.rdata1_byp_mux_sel_Dhl (rdata1_byp_mux_sel_Dhl),
+
+          // VECTOR ADDED
+  // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
+    .rf_waddr_Dhl           (rf_waddr_Dhl ),
+    .v_lanes_Whl (v_lanes_Whl),
+     // idx of last used lane of the 4 lanes - also even needed? for writeout ig
+  // input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
+  // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
+    .v_rdata0_byp_mux_sel_Dhl (v_rdata0_byp_mux_sel_Dhl), // NOTE: it's one more bit for the above reason
+	  .v_rdata1_byp_mux_sel_Dhl (v_rdata1_byp_mux_sel_Dhl), // NOTE: it's one more bit 
+  // output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  // output   [1:0] v_op1_mux_sel_Dhl,
+    .v_isstore_Dhl (v_isstore_Dhl),
+    .v_isvec_Whl (v_isvec_Whl), // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
+  // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
+  // meoryyy stuff
+  .v_isvec_Dhl (v_isvec_Dhl),
+  .v_isvec_X3hl (v_isvec_X3hl),
+  .v_idx_Dhl (v_idx_Dhl),
+  .v_idx_Whl (v_idx_Whl),
+  // output         v_rinter0_Dhl,
+  // output         v_rinter1_Dhl,
+  // output         v_winter_Whl,
+
+  .v_vlr_mux_sel (v_vlr_mux_sel),
+
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_0_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_0_Mhl),
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_1_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_1_Mhl),
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_2_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_2_Mhl),
+  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_3_Mhl),
+  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_3_Mhl),
+
+  .v_muldivreq_rdy_0 (v_muldivreq_rdy_0),
+  .v_muldivreq_rdy_1 (v_muldivreq_rdy_1),
+  .v_muldivreq_rdy_2 (v_muldivreq_rdy_2),
+  .v_muldivreq_rdy_3 (v_muldivreq_rdy_3),
+
+
+
+    // Control Signals (dpath->ctrl)
+    .VLR_temp_Xhl (VLR_temp_Xhl),
 
 
     // Control Signals (dpath->ctrl)

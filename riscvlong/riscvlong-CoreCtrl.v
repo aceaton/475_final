@@ -95,8 +95,8 @@ module riscv_CoreCtrl
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
   output   [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
 	output   [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
-  output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
-  output   [1:0] v_op1_mux_sel_Dhl,
+  // output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  // output   [1:0] v_op1_mux_sel_Dhl,
   output         v_isstore_Dhl,
   output         v_isvec_Whl, // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
   // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
@@ -454,15 +454,15 @@ module riscv_CoreCtrl
   reg [1:0] acc_source2; // 0: imreg, 1: vs1, 2: vs2, 3: vd
   reg acc_dest; // 0: imreg, 1: vd
  
-  always @(posedge) begin
+  always @(posedge clk) begin
     if (reset) begin
       acc_stage <= 1'b0;
     end
     else begin
-        if(acc_stage == 1'b0 && <stage_0_last_step>) begin
+        if(acc_stage == 1'b0 && v_idx_counter_done) begin
           acc_stage <= 1'b1; 
         end
-        else if (acc_stage == 1'b1 && <stage_1_last_step>) begin
+        else if (acc_stage == 1'b1 && v_idx_counter_done) begin
           acc_stage <= 1'b0; 
         end
     end
@@ -552,10 +552,10 @@ module riscv_CoreCtrl
 			`RISCV_INST_MSG_VMULH   :cs= {y,y,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_u, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
 			`RISCV_INST_MSG_VMULHU  :cs= {y,y,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mulu, y, mdm_u, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
       `RISCV_INST_MSG_VMULHSU :cs= {y,y,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mulsu,y, mdm_u, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-      `RISCV_INST_MSG_VLE     :cs= {n,n,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_x,    n, mdm_x, em_alu, ld,  ml_w, dmm_w,  wm_mem, y,  rd, n   };
-      `RISCV_INST_MSG_VSE     :cs= {n,n,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_x,    n, mdm_x, em_alu, st,  ml_w, dmm_w,  wm_mem, y,  rx, n   };
-      `RISCV_INST_MSG_VLSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_x,    n, mdm_x, em_alu, ld,  ml_w, dmm_w,  wm_mem, y,  rd, n   };
-      `RISCV_INST_MSG_VSSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_x,    n, mdm_x, em_alu, st,  ml_w, dmm_w,  wm_mem, y,  rx, n   };
+      `RISCV_INST_MSG_VLE     :cs= {n,n,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, ld,  ml_w, dmm_w,  wm_mem, y,  rd, n   };
+      `RISCV_INST_MSG_VSE     :cs= {n,n,y,vmac_x,n,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, st,  ml_w, dmm_w,  wm_mem, y,  rx, n   };
+      `RISCV_INST_MSG_VLSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, ld,  ml_w, dmm_w,  wm_mem, y,  rd, n   };
+      `RISCV_INST_MSG_VSSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, st,  ml_w, dmm_w,  wm_mem, y,  rx, n   };
       `RISCV_INST_MSG_VMACC   :begin
                                   if(acc_stage == 1'b0) begin
                                     cs= {y,y,y,vmacc,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
@@ -626,7 +626,7 @@ module riscv_CoreCtrl
   // VECTOR CONTROLS - need to be modified as per updated control bundle - Mihir
   wire       v_isvec_Dhl = cs[`RISCV_INST_MSG_IS_VOP]; 
   wire       v_isvstore = cs[`RISCV_INST_MSG_IS_VSTORE]; 
-  wire       v_isvconf = cs[`RISCV_INST_MSG_IS_VCONF]; 
+  wire       v_isvconf = cs[`RISCV_INST_MSG_VCONF_TYPE]; 
 
   assign v_vlr_mux_sel = v_isvconf;
 
@@ -741,7 +741,7 @@ module riscv_CoreCtrl
 
   // the number of lanes to enable
   // if we're on the last chunk of elements, use VLR % 4, otherwise use all lanes
-  assign v_lanes_Dhl = (v_idx_Dhl == num_iters) ? (VLR_temp_Xhl % 6'd4)[] : 2'd3;
+  wire v_lanes_Dhl = (v_idx_Dhl == num_iters) ? (VLR_temp_Xhl[1:0]) : 2'd3;
   
   // 1 when counter is 1 cycle from finishing
   reg v_idx_counter_done;
@@ -760,12 +760,12 @@ module riscv_CoreCtrl
     end
 
     // if vector op in D
-    else if v_isvec_Dhl begin
+    else if (v_isvec_Dhl) begin
 
       // increment vector register index if less than number of iterations
       if (v_idx_Dhl < num_iters) begin
         // if 1 away from finishing, counter is done on next cycle
-        if v_idx_Dhl == (num_iters - 4'd1) begin
+        if (v_idx_Dhl == (num_iters - 4'd1)) begin
           v_idx_counter_done <= 1'b1;
         end
         v_idx_Dhl <= v_idx_Dhl_next;
@@ -788,9 +788,9 @@ module riscv_CoreCtrl
   wire squash_Dhl = ( inst_val_Xhl && brj_taken_Xhl );
 
   // Stall in D if muldiv unit is not ready and there is a valid request
-  wire v_muldivreq_rdy = v_muldivreq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3
+  wire v_muldivreq_rdy = v_muldivreq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3;
 
-  wire stall_muldiv_Dhl = muldivreq_val_Dhl && inst_val_Dhl && (!muldivreq_rdy || (!v_muldivreq_rdy && v_isvec_Dhl));
+  wire stall_muldiv_Dhl = ( (muldivreq_val_Dhl && inst_val_Dhl )&& (!muldivreq_rdy || (!v_muldivreq_rdy && v_isvec_Dhl)));
 
   // Stall for data hazards if load-use or mul-use
   wire s_stall_hazard_Dhl   = inst_val_Dhl && (
@@ -1007,8 +1007,8 @@ module riscv_CoreCtrl
   wire stall_imem_Xhl = !imemreq_rdy;
 
   // Stall in X if dmem is not ready and there was a valid request
-  wire v_dmemreq_rdy = v_dmemreq_rdy_0 && v_dmemreq_rdy_1 && v_dmemreq_rdy_2 && v_dmemreq_rdy_3
-  wire stall_dmem_Xhl = dmemreq_val_Xhl && inst_val_Xhl && (!dmemreq_rdy || (!v_dmemreq_rdy && v_isvec_Xhl));
+  wire v_dmemreq_rdy = v_dmemreq_rdy_0 && v_dmemreq_rdy_1 && v_dmemreq_rdy_2 && v_dmemreq_rdy_3;
+  wire stall_dmem_Xhl = ((dmemreq_val_Xhl && inst_val_Xhl) && (!dmemreq_rdy || (!v_dmemreq_rdy && v_isvec_Xhl)));
 
   // Aggregate Stall Signal
 

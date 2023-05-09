@@ -82,8 +82,8 @@ module riscv_CoreDpath
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
   input   [3:0] v_rdata0_byp_mux_sel_Dhl, // NOTE: it's one more bit for the above reason
 	input   [3:0] v_rdata1_byp_mux_sel_Dhl, // NOTE: it's one more bit 
-  input   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
-  input   [1:0] v_op1_mux_sel_Dhl,
+  // input   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
+  // input   [1:0] v_op1_mux_sel_Dhl,
   input         v_isstore_Dhl,
   input         v_isvec_Whl, // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
   // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
@@ -95,6 +95,7 @@ module riscv_CoreDpath
   // input v_rinter0_Dhl,
   // input v_rinter1_Dhl,
   // input v_winter_Whl,
+  
 
   input         v_vlr_mux_sel,
 
@@ -124,6 +125,12 @@ module riscv_CoreDpath
   output  [5:0] VLR_temp_Xhl
   // we could process the csrs (vl) in dp and send across, or just not
 );
+wire v_muldivresp_val_0;
+wire v_muldivresp_val_1;
+wire v_muldivresp_val_2;
+wire v_muldivresp_val_3;
+wire s_muldivresp_val;
+assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldivresp_val_2 || v_muldivresp_val_3)) || s_muldivresp_val);
 
   //--------------------------------------------------------------------
   // PC Logic Stage
@@ -226,8 +233,7 @@ module riscv_CoreDpath
 
   wire [ 4:0] rf_raddr0_Dhl = inst_rs1_Dhl;
   wire [31:0] rf_rdata0_Dhl;
-  wire [ 4:0] rf_raddr1_Dhl 
-      = (v_isstore_Dhl && v_isvec_Dhl) rf_waddr_Dhl 
+  wire [ 4:0] rf_raddr1_Dhl = (v_isstore_Dhl && v_isvec_Dhl) ? rf_waddr_Dhl 
       :                                inst_rs2_Dhl;
       // add control for hanging rs2 to vd in acc insts
   wire [31:0] rf_rdata1_Dhl;
@@ -322,26 +328,28 @@ module riscv_CoreDpath
     // Operand 0 mux
 
   wire [127:0] v_op0_mux_out_Dhl
-    = ( v_op0_mux_sel_Dhl == 2'd0 ) ? v_rdata0_byp_mux_out_Dhl
-    : ( v_op0_mux_sel_Dhl == 2'd1 ) ? {rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl}
-    : ( v_op0_mux_sel_Dhl == 2'd2 ) ? {const0,const0,const0,const0}
+    = ( op0_mux_sel_Dhl == 3'd0 ) ? v_rdata0_byp_mux_out_Dhl
+    : ( op0_mux_sel_Dhl == 3'd1 ) ? {rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl, rdata0_byp_mux_out_Dhl}
+    : ( op0_mux_sel_Dhl == 3'd2 ) ? {const0,const0,const0,const0}
     :                               128'bx;
 
   // Operand 1 mux
 
-  wire [31:0] v_off0_Dhl = (v_idx_Dhl << 7) * rdata1_byp_mux_out_Dhl // stride
-  wire [31:0] v_off1_Dhl = ((v_idx_Dhl<<2 + 32'd1) << 5) * rdata1_byp_mux_out_Dhl // stride
-  wire [31:0] v_off2_Dhl = ((v_idx_Dhl<<2 + 32'd2) << 5) * rdata1_byp_mux_out_Dhl // stride
-  wire [31:0] v_off3_Dhl = ((v_idx_Dhl<<2 + 32'd3) << 5) * rdata1_byp_mux_out_Dhl // stride
+  wire [31:0] v_off0_Dhl = (v_idx_Dhl << 7) * rdata1_byp_mux_out_Dhl; // stride
+  wire [31:0] v_off1_Dhl = ((v_idx_Dhl<<2 + 32'd1) << 5) * rdata1_byp_mux_out_Dhl; // stride
+  wire [31:0] v_off2_Dhl = ((v_idx_Dhl<<2 + 32'd2) << 5) * rdata1_byp_mux_out_Dhl;// stride
+  wire [31:0] v_off3_Dhl = ((v_idx_Dhl<<2 + 32'd3) << 5) * rdata1_byp_mux_out_Dhl; // stride
 
   wire [127:0] v_op1_mux_out_Dhl
-    = ( v_op1_mux_sel_Dhl == 2'd0 ) ? v_rdata1_byp_mux_out_Dhl
-    : ( v_op1_mux_sel_Dhl == 2'd1 ) ? {v_off3_Dhl,v_off2_Dhl,v_off1_Dhl,v_off0_Dhl}
-    : ( v_op1_mux_sel_Dhl == 2'd2 ) ? {const0,const0,const0,const0}
+    = ( op1_mux_sel_Dhl == 3'd0 ) ? v_rdata1_byp_mux_out_Dhl
+    : ( op1_mux_sel_Dhl == 3'd1 ) ? {v_off3_Dhl,v_off2_Dhl,v_off1_Dhl,v_off0_Dhl}
+    : ( op1_mux_sel_Dhl == 3'd2 ) ? {const0,const0,const0,const0}
     :                               128'bx;
 
-  wire [6:0]  VLR_temp_Xhl
-    = (v_vlr_mux_sel == )
+  wire [5:0]  VLR_temp_Dhl
+    = (v_vlr_mux_sel == 2'd0) ? VLR_temp_Xhl
+    : (v_vlr_mux_sel == 2'd2) ? imm_u_Dhl[5:0]
+    :                           VLR_temp_Xhl;
 
   // VECTOR dont have more muxes cuz we dont need anything other than the bypass mux sel, we're not adding vector immediates
   // WAIT yeah it does but just for addresses for mem - > figure that tf out ahadkfalkdjs 
@@ -551,25 +559,25 @@ module riscv_CoreDpath
   end
 
   //vec
-  reg [31:0] v_dmemresp_queue_reg_0_Mhl;
+  // reg [31:0] v_dmemresp_queue_reg_0_Mhl;
   always @ ( posedge clk ) begin
     if ( v_dmemresp_queue_en_0_Mhl ) begin
       v_dmemresp_queue_reg_0_Mhl <= v_dmemresp_mux_out_0_Mhl;
     end
   end
-  reg [31:0] v_dmemresp_queue_reg_1_Mhl;
+  // reg [31:0] v_dmemresp_queue_reg_1_Mhl;
   always @ ( posedge clk ) begin
     if ( v_dmemresp_queue_en_1_Mhl ) begin
       v_dmemresp_queue_reg_1_Mhl <= v_dmemresp_mux_out_1_Mhl;
     end
   end
-  reg [31:2] v_dmemresp_queue_reg_2_Mhl;
+  // reg [31:2] v_dmemresp_queue_reg_2_Mhl;
   always @ ( posedge clk ) begin
     if ( v_dmemresp_queue_en_2_Mhl ) begin
       v_dmemresp_queue_reg_2_Mhl <= v_dmemresp_mux_out_2_Mhl;
     end
   end
-  reg [31:3] v_dmemresp_queue_reg_3_Mhl;
+  // reg [31:3] v_dmemresp_queue_reg_3_Mhl;
   always @ ( posedge clk ) begin
     if ( v_dmemresp_queue_en_3_Mhl ) begin
       v_dmemresp_queue_reg_3_Mhl <= v_dmemresp_mux_out_3_Mhl;
@@ -785,9 +793,9 @@ module riscv_CoreDpath
     .v_waddr_p (rf_waddr_Whl),
     .v_widx_p  ({v_idx_Whl,2'd0}),
     .v_wdata_p (v_wb_mux_out_Whl),
-    .v_rinter0 (v_rinter0_Dhl),
-    .v_rinter1 (v_rinter1_Dhl),
-    .v_winter (v_winter_Whl)
+    .v_rinter0 (0),
+    .v_rinter1 (0),
+    .v_winter (0)
   );
 
   
@@ -844,7 +852,7 @@ module riscv_CoreDpath
     .muldivreq_msg_a					(op0_mux_out_Dhl			),
     .muldivreq_msg_b					(op1_mux_out_Dhl			),
     .muldivreq_val						(muldivreq_val && !v_isvec_Dhl		),
-    .muldivreq_rdy						(s_muldivreq_rdy				),
+    .muldivreq_rdy						(muldivreq_rdy				),
                                                    
     .muldivresp_msg_result		(muldivresp_msg_result_X3hl),
     .muldivresp_val						(s_muldivresp_val				),
