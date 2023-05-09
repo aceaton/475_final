@@ -3,7 +3,9 @@
 //=========================================================================
 
 `include "riscvlong-Core.v"
-`include "vc-TestDualPortRandDelayMem.v"
+// `include "vc-TestDualPortRandDelayMem.v"
+
+`include "vc-TestSixPortMem.v"
 
 module riscv_sim;
 
@@ -33,6 +35,30 @@ module riscv_sim;
   wire                                 dmemreq_rdy;
   wire   [`VC_MEM_RESP_MSG_SZ(32)-1:0] dmemresp_msg;
   wire                                 dmemresp_val;
+
+  wire [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_0;
+  wire                                 v_dmemreq_val_0;
+  wire                                 v_dmemreq_rdy_0;
+  wire   [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_0;
+  wire                                 v_dmemresp_val_0;
+
+  wire [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_1;
+  wire                                 v_dmemreq_val_1;
+  wire                                 v_dmemreq_rdy_1;
+  wire   [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_1;
+  wire                                 v_dmemresp_val_1;
+
+  wire [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_2;
+  wire                                 v_dmemreq_val_2;
+  wire                                 v_dmemreq_rdy_2;
+  wire   [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_2;
+  wire                                 v_dmemresp_val_2;
+
+  wire [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_3;
+  wire                                 v_dmemreq_val_3;
+  wire                                 v_dmemreq_rdy_3;
+  wire   [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_3;
+  wire                                 v_dmemresp_val_3;
 
   //----------------------------------------------------------------------
   // Reset signals for processor and memory
@@ -67,15 +93,75 @@ module riscv_sim;
     .imemresp_val      (imemresp_val),
 
     // Data request interface
-
-    .dmemreq_msg       (dmemreq_msg),
-    .dmemreq_val       (dmemreq_val),
+    .dmemreq_msg      (dmemreq_msg),
+    .dmemreq_val     (dmemreq_val),
     .dmemreq_rdy       (dmemreq_rdy),
-
     // Data response interface
-
-    .dmemresp_msg      (dmemresp_msg),
+    .dmemresp_msg    (dmemresp_msg),
     .dmemresp_val      (dmemresp_val),
+
+    // Data request interface
+    .v_dmemreq_msg_0      (v_dmemreq_msg_0),
+    .v_dmemreq_val_0       (v_dmemreq_val_0),
+    .v_dmemreq_rdy_0       (v_dmemreq_rdy_0),
+    // Data response interface
+    .v_dmemresp_msg_0     (v_dmemresp_msg_0),
+    .v_dmemresp_val_0      (v_dmemresp_val_0),
+
+    // Data request interface
+    .v_dmemreq_msg_1      (v_dmemreq_msg_1),
+    .v_dmemreq_val_1       (v_dmemreq_val_1),
+    .v_dmemreq_rdy_1       (v_dmemreq_rdy_1),
+    // Data response interface
+    .v_dmemresp_msg_1     (v_dmemresp_msg_1),
+    .v_dmemresp_val_1      (v_dmemresp_val_1),
+
+    // Data request interface
+    .v_dmemreq_msg_2      (v_dmemreq_msg_2),
+    .v_dmemreq_val_2       (v_dmemreq_val_2),
+    .v_dmemreq_rdy_2       (v_dmemreq_rdy_2),
+    // Data response interface
+    .v_dmemresp_msg_2     (v_dmemresp_msg_2),
+    .v_dmemresp_val_2      (v_dmemresp_val_2),
+
+    // Data request interface
+    .v_dmemreq_msg_3      (v_dmemreq_msg_3),
+    .v_dmemreq_val_3       (v_dmemreq_val_3),
+    .v_dmemreq_rdy_3       (v_dmemreq_rdy_3),
+    // Data response interface
+    .v_dmemresp_msg_3     (v_dmemresp_msg_3),
+    .v_dmemresp_val_3      (v_dmemresp_val_3),
+    
+
+
+  // Data Memory Request Port vector 
+  // output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_0,
+  // output                                 v_dmemreq_val_0,
+  // input                                  v_dmemreq_rdy_0,
+  // // Data Memory Response Port vector
+  // input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_0,
+  // input                               v_dmemresp_val_0,
+  // // Data Memory Request Port vector 
+  // output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_1,
+  // output                                 v_dmemreq_val_1,
+  // input                                  v_dmemreq_rdy_1,
+  // // Data Memory Response Port vector
+  // input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_1,
+  // input                               v_dmemresp_val_1,
+  //   // Data Memory Request Port vector 
+  // output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_2,
+  // output                                 v_dmemreq_val_2,
+  // input                                  v_dmemreq_rdy_2,
+  // // Data Memory Response Port vector
+  // input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_2,
+  // input                               v_dmemresp_val_2,
+  //   // Data Memory Request Port vector 
+  // output [`VC_MEM_REQ_MSG_SZ(32,32)-1:0] v_dmemreq_msg_3,
+  // output                                 v_dmemreq_val_3,
+  // input                                  v_dmemreq_rdy_3,
+  // // Data Memory Response Port vector
+  // input [`VC_MEM_RESP_MSG_SZ(32)-1:0] v_dmemresp_msg_3,
+  // input                               v_dmemresp_val_3,
 
     // CSR status register output to host
 
@@ -86,12 +172,14 @@ module riscv_sim;
   // Test Memory
   //----------------------------------------------------------------------
 
-  vc_TestDualPortRandDelayMem
+
+
+  vc_TestSixPortMem
   #(
     .p_mem_sz    (1<<20), // max 20-bit address to index into memory
     .p_addr_sz   (32),    // high order bits will get truncated in memory
-    .p_data_sz   (32),
-    .p_max_delay (0)
+    .p_data_sz   (32)
+    // .p_max_delay (0)
   )
   mem
   (
@@ -100,28 +188,101 @@ module riscv_sim;
 
     // Instruction request interface
 
-    .memreq0_val        (imemreq_val),
-    .memreq0_rdy        (imemreq_rdy),
-    .memreq0_msg        (imemreq_msg),
+    .memreq5_val        (imemreq_val),
+    .memreq5_rdy        (imemreq_rdy),
+    .memreq5_msg        (imemreq_msg),
 
     // Instruction response interface
 
-    .memresp0_val       (imemresp_val),
-    .memresp0_rdy       (1'b1),
-    .memresp0_msg       (imemresp_msg),
+    .memresp5_val       (imemresp_val),
+    .memresp5_rdy       (1'b1),
+    .memresp5_msg       (imemresp_msg),
 
     // Data request interface
 
-    .memreq1_val        (dmemreq_val),
-    .memreq1_rdy        (dmemreq_rdy),
-    .memreq1_msg        (dmemreq_msg),
+    .memreq4_val        (dmemreq_val),
+    .memreq4_rdy        (dmemreq_rdy),
+    .memreq4_msg        (dmemreq_msg),
 
     // Data response interface
 
-    .memresp1_val       (dmemresp_val),
+    .memresp4_val       (dmemresp_val),
+    .memresp4_rdy       (1'b1),
+    .memresp4_msg       (dmemresp_msg),
+
+    // Data request interface
+    .memreq0_val        (v_dmemreq_val_0),
+    .memreq0_rdy        (v_dmemreq_rdy_0),
+    .memreq0_msg        (v_dmemreq_msg_0),
+    // Data response interface
+    .memresp0_val       (v_dmemresp_val_0),
+    .memresp0_rdy       (1'b1),
+    .memresp0_msg       (v_dmemresp_msg_0),
+
+    // Data request interface
+    .memreq1_val        (v_dmemreq_val_1),
+    .memreq1_rdy        (v_dmemreq_rdy_1),
+    .memreq1_msg        (v_dmemreq_msg_1),
+    // Data response interface
+    .memresp1_val       (v_dmemresp_val_1),
     .memresp1_rdy       (1'b1),
-    .memresp1_msg       (dmemresp_msg)
+    .memresp1_msg       (v_dmemresp_msg_1),
+
+    // Data request interface
+    .memreq2_val        (v_dmemreq_val_2),
+    .memreq2_rdy        (v_dmemreq_rdy_2),
+    .memreq2_msg        (v_dmemreq_msg_2),
+    // Data response interface
+    .memresp2_val       (v_dmemresp_val_2),
+    .memresp2_rdy       (1'b1),
+    .memresp2_msg       (v_dmemresp_msg_2),
+
+    // Data request interface
+    .memreq3_val        (v_dmemreq_val_3),
+    .memreq3_rdy        (v_dmemreq_rdy_3),
+    .memreq3_msg        (v_dmemreq_msg_3),
+    // Data response interface
+    .memresp3_val       (v_dmemresp_val_3),
+    .memresp3_rdy       (1'b1),
+    .memresp3_msg       (v_dmemresp_msg_3)
+    
    );
+  // vc_TestDualPortRandDelayMem
+  // #(
+  //   .p_mem_sz    (1<<20), // max 20-bit address to index into memory
+  //   .p_addr_sz   (32),    // high order bits will get truncated in memory
+  //   .p_data_sz   (32),
+  //   .p_max_delay (0)
+  // )
+  // mem
+  // (
+  //   .clk                (clk),
+  //   .reset              (reset_mem),
+
+  //   // Instruction request interface
+
+  //   .memreq0_val        (imemreq_val),
+  //   .memreq0_rdy        (imemreq_rdy),
+  //   .memreq0_msg        (imemreq_msg),
+
+  //   // Instruction response interface
+
+  //   .memresp0_val       (imemresp_val),
+  //   .memresp0_rdy       (1'b1),
+  //   .memresp0_msg       (imemresp_msg),
+
+  //   // Data request interface
+
+  //   .memreq1_val        (dmemreq_val),
+  //   .memreq1_rdy        (dmemreq_rdy),
+  //   .memreq1_msg        (dmemreq_msg),
+
+  //   // Data response interface
+
+  //   .memresp1_val       (dmemresp_val),
+  //   .memresp1_rdy       (1'b1),
+  //   .memresp1_msg       (dmemresp_msg)
+  //  );
 
   //----------------------------------------------------------------------
   // Start the simulation

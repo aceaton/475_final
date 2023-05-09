@@ -361,10 +361,14 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
     : ( op1_mux_sel_Dhl == 3'd2 ) ? {const0,const0,const0,const0}
     :                               128'bx;
 
-  wire [5:0]  VLR_temp_Dhl
-    = (v_vlr_mux_sel == 2'd0) ? VLR_temp_Xhl
+  reg [5:0] tVLR_temp_Xhl;
+
+  wire [5:0] VLR_temp_Dhl
+    = (v_vlr_mux_sel == 2'd0) ? tVLR_temp_Xhl
     : (v_vlr_mux_sel == 2'd2) ? imm_u_Dhl[5:0]
-    :                           VLR_temp_Xhl;
+    :                           tVLR_temp_Xhl;
+  
+  assign VLR_temp_Xhl = tVLR_temp_Xhl;
 
   // VECTOR dont have more muxes cuz we dont need anything other than the bypass mux sel, we're not adding vector immediates
   // WAIT yeah it does but just for addresses for mem - > figure that tf out ahadkfalkdjs 
@@ -408,7 +412,7 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
       v_wdata_Xhl <= v_wdata_Dhl;
       v_winter_Xhl <= v_winter_Dhl;
 
-      VLR_temp_Xhl<=VLR_temp_Dhl;
+      tVLR_temp_Xhl<=VLR_temp_Dhl;
     end
   end
 

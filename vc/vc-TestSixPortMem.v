@@ -76,7 +76,7 @@ module vc_TestSixPortMem
 
   output                     memresp3_val,
   input                      memresp3_rdy,
-  output [c_resp_msg_sz-1:0] memresp3_msg
+  output [c_resp_msg_sz-1:0] memresp3_msg,
 
   // Memory request port 4 interface
 
@@ -88,7 +88,7 @@ module vc_TestSixPortMem
 
   output                     memresp4_val,
   input                      memresp4_rdy,
-  output [c_resp_msg_sz-1:0] memresp4_msg
+  output [c_resp_msg_sz-1:0] memresp4_msg,
 
   // Memory request port 5 interface
 
