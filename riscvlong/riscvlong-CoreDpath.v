@@ -243,7 +243,7 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
                               : (v_acc_source2 == 2'd1) ? inst_rs1_Dhl
                               : (v_acc_source2 == 2'd2) ? inst_rs2_Dhl
                               : (v_acc_source2 == 2'd3) ? inst_rd_Dhl
-                              :                         ? inst_rs2_Dhl;
+                              :                          inst_rs2_Dhl;
       // add control for hanging rs2 to vd in acc insts - done (Mihir)
   wire [31:0] rf_rdata1_Dhl;
 

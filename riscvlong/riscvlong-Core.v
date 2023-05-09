@@ -179,7 +179,6 @@ module riscv_Core
   wire [1:0]   v_acc_source1;
   wire [1:0]   v_acc_source2;
   wire         v_acc_dest;
-  wire 
 
   // wire          v_muldivreq_rdy_0;
   // wire          v_muldivreq_rdy_1;
