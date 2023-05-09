@@ -331,10 +331,7 @@ module riscv_Core
     .v_dmemreq_val_3            (v_dmemreq_val_3),
     .v_dmemreq_rdy_3            (v_dmemreq_rdy_3),
     .v_dmemresp_val_3           (v_dmemresp_val_3),
-    .v_muldivreq_rdy_0          (v_muldivreq_rdy_0),
-    .v_muldivreq_rdy_1          (v_muldivreq_rdy_1),
-    .v_muldivreq_rdy_2          (v_muldivreq_rdy_2),
-    .v_muldivreq_rdy_3          (v_muldivreq_rdy_3),
+
 
     // Controls Signals (ctrl->dpath)
 
@@ -455,10 +452,6 @@ module riscv_Core
     .v_dmemreq_msg_addr_3        (v_dmemreq_msg_addr_3),
     .v_dmemreq_msg_data_3        (v_dmemreq_msg_data_3),
     .v_dmemresp_msg_data_3       (v_dmemresp_msg_data_3),
-    .v_muldivreq_rdy_0           (v_muldivreq_rdy_0),
-    .v_muldivreq_rdy_1           (v_muldivreq_rdy_1),
-    .v_muldivreq_rdy_2           (v_muldivreq_rdy_2),
-    .v_muldivreq_rdy_3           (v_muldivreq_rdy_3),
 
 
     // Controls Signals (ctrl->dpath)

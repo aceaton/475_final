@@ -788,9 +788,9 @@ module riscv_CoreCtrl
   wire squash_Dhl = ( inst_val_Xhl && brj_taken_Xhl );
 
   // Stall in D if muldiv unit is not ready and there is a valid request
-  wire v_muldivreq_rdy = v_muldivreq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3;
+  // wire v_muldivreq_rdy = v_muldivreq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3;
 
-  wire stall_muldiv_Dhl = ( (muldivreq_val_Dhl && inst_val_Dhl )&& (!muldivreq_rdy || (!v_muldivreq_rdy && v_isvec_Dhl)));
+  wire stall_muldiv_Dhl = ( (muldivreq_val_Dhl && inst_val_Dhl )&& (!muldivreq_rdy));
 
   // Stall for data hazards if load-use or mul-use
   wire s_stall_hazard_Dhl   = inst_val_Dhl && (
@@ -976,9 +976,25 @@ module riscv_CoreCtrl
 
   // Only send a valid dmem request if not stalled
 
-  assign dmemreq_msg_rw  = dmemreq_msg_rw_Xhl;
+  assign dmemreq_msg_rw  = dmemreq_msg_rw_Xhl&&(!v_isvec_Xhl);
   assign dmemreq_msg_len = dmemreq_msg_len_Xhl;
-  assign dmemreq_val     = ( inst_val_Xhl && !stall_Xhl && dmemreq_val_Xhl );
+  assign dmemreq_val     = ( inst_val_Xhl && !stall_Xhl && dmemreq_val_Xhl && !v_isvec_Xhl);
+
+  assign v_dmemreq_msg_rw_0 = dmemreq_msg_rw_Xhl&&(v_isvec_Xhl);
+  assign v_dmemreq_msg_rw_1 = dmemreq_msg_rw_Xhl&&(v_isvec_Xhl);
+  assign v_dmemreq_msg_rw_2 = dmemreq_msg_rw_Xhl&&(v_isvec_Xhl);
+  assign v_dmemreq_msg_rw_3 = dmemreq_msg_rw_Xhl&&(v_isvec_Xhl);
+
+  assign v_dmemreq_msg_len_0 = dmemreq_msg_len_Xhl;
+  assign v_dmemreq_msg_len_1 = dmemreq_msg_len_Xhl; 
+  assign v_dmemreq_msg_len_2 = dmemreq_msg_len_Xhl;
+  assign v_dmemreq_msg_len_3 = dmemreq_msg_len_Xhl;
+
+  assign v_dmemreq_val_0     = ( inst_val_Xhl && !stall_Xhl && dmemreq_val_Xhl &&(v_isvec_Xhl));
+  assign v_dmemreq_val_1     = ( inst_val_Xhl && !stall_Xhl && dmemreq_val_Xhl &&(v_isvec_Xhl));
+  assign v_dmemreq_val_2     = ( inst_val_Xhl && !stall_Xhl && dmemreq_val_Xhl &&(v_isvec_Xhl));
+  assign v_dmemreq_val_3     = ( inst_val_Xhl && !stall_Xhl && dmemreq_val_Xhl &&(v_isvec_Xhl));
+
 
   // Resolve Branch
 
@@ -1007,8 +1023,8 @@ module riscv_CoreCtrl
   wire stall_imem_Xhl = !imemreq_rdy;
 
   // Stall in X if dmem is not ready and there was a valid request
-  wire v_dmemreq_rdy = v_dmemreq_rdy_0 && v_dmemreq_rdy_1 && v_dmemreq_rdy_2 && v_dmemreq_rdy_3;
-  wire stall_dmem_Xhl = ((dmemreq_val_Xhl && inst_val_Xhl) && (!dmemreq_rdy || (!v_dmemreq_rdy && v_isvec_Xhl)));
+  wire v_dmemreq_rdy = v_dmemreq_rdy_0 || v_dmemreq_rdy_1 || v_dmemreq_rdy_2 ||v_dmemreq_rdy_3;
+  wire stall_dmem_Xhl = ((dmemreq_val_Xhl && inst_val_Xhl) && ((!dmemreq_rdy &&!v_isvec_Xhl)|| (!v_dmemreq_rdy && v_isvec_Xhl)));
 
   // Aggregate Stall Signal
 
@@ -1081,10 +1097,27 @@ module riscv_CoreCtrl
 
   // Data memory queue control signals
 
-  assign dmemresp_queue_en_Mhl = ( stall_Mhl && dmemresp_val );
-  wire   dmemresp_queue_val_next_Mhl
-    = stall_Mhl && ( dmemresp_val || dmemresp_queue_val_Mhl );
+  wire a_dmemresp_val = (!v_isvec_Mhl) ? dmemresp_val : (v_dmemresp_val_0 || v_dmemresp_val_1 || v_dmemresp_val_2 || v_dmemresp_val_3);
 
+  assign dmemresp_queue_en_Mhl = ( stall_Mhl && a_dmemresp_val );
+  wire   dmemresp_queue_val_next_Mhl
+    = stall_Mhl && ( a_dmemresp_val || dmemresp_queue_val_Mhl );
+
+  assign v_dmemresp_queue_en_0_Mhl = ( stall_Mhl && v_dmemresp_val_0 );
+  wire   v_dmemresp_queue_val_next_0_Mhl
+    = stall_Mhl && ( v_dmemresp_val_0 || v_dmemresp_queue_val_0_Mhl );
+
+  assign v_dmemresp_queue_en_1_Mhl = ( stall_Mhl && v_dmemresp_val_1 );
+  wire   v_dmemresp_queue_val_next_1_Mhl
+    = stall_Mhl && ( v_dmemresp_val_1 || v_dmemresp_queue_val_1_Mhl );
+    
+    assign v_dmemresp_queue_en_2_Mhl = ( stall_Mhl && v_dmemresp_val_2 );
+  wire   v_dmemresp_queue_val_next_2_Mhl
+    = stall_Mhl && ( v_dmemresp_val_2 || v_dmemresp_queue_val_2_Mhl );
+    
+    assign v_dmemresp_queue_en_3_Mhl = ( stall_Mhl && v_dmemresp_val_3 );
+  wire   v_dmemresp_queue_val_next_3_Mhl
+    = stall_Mhl && ( v_dmemresp_val_3 || v_dmemresp_queue_val_3_Mhl );
   // Dummy Squash Signal
 
   wire squash_Mhl = 1'b0;
@@ -1155,6 +1188,10 @@ module riscv_CoreCtrl
       v_lanes_X2hl <=      v_lanes_Mhl;
     end
     dmemresp_queue_val_Mhl <= dmemresp_queue_val_next_Mhl;
+    v_dmemresp_queue_val_0_Mhl <= v_dmemresp_queue_val_next_0_Mhl;
+    v_dmemresp_queue_val_1_Mhl <= v_dmemresp_queue_val_next_1_Mhl;
+    v_dmemresp_queue_val_3_Mhl <= v_dmemresp_queue_val_next_3_Mhl;
+    v_dmemresp_queue_val_2_Mhl <= v_dmemresp_queue_val_next_2_Mhl;
   end
 
   //----------------------------------------------------------------------
