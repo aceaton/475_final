@@ -95,7 +95,10 @@ module riscv_CoreDpath
   // input v_rinter0_Dhl,
   // input v_rinter1_Dhl,
   // input v_winter_Whl,
-  
+
+  input  [1:0]  v_acc_source1,
+  input  [1:0]  v_acc_source2,
+  input         v_acc_dest,
 
   input         v_vlr_mux_sel,
 
@@ -231,12 +234,22 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
 
   // Register file
 
-  wire [ 4:0] rf_raddr0_Dhl = inst_rs1_Dhl;
+  wire [ 4:0] rf_raddr0_Dhl = (v_acc_source1 == 2'd1) ? inst_rs1_Dhl
+                            : (v_acc_source1 == 2'd2) ? inst_rs2_Dhl 
+                            : (v_acc_source1 == 2'd3) ? inst_rd_Dhl
+                            :                           inst_rs1_Dhl;
   wire [31:0] rf_rdata0_Dhl;
   wire [ 4:0] rf_raddr1_Dhl = (v_isstore_Dhl && v_isvec_Dhl) ? rf_waddr_Dhl 
-      :                                inst_rs2_Dhl;
-      // add control for hanging rs2 to vd in acc insts
+                              : (v_acc_source2 == 2'd1) ? inst_rs1_Dhl
+                              : (v_acc_source2 == 2'd2) ? inst_rs2_Dhl
+                              : (v_acc_source2 == 2'd3) ? inst_rd_Dhl
+                              :                         ? inst_rs2_Dhl;
+      // add control for hanging rs2 to vd in acc insts - done (Mihir)
   wire [31:0] rf_rdata1_Dhl;
+
+  wire v_rinter0_Dhl = (v_acc_source1 == 2'd0) ? 1'b1 : 1'b0;
+  wire v_rinter1_Dhl = (v_acc_source2 == 2'd0) ? 1'b1 : 1'b0;
+  wire v_winter_Dhl = (v_acc_dest == 2'd0) ? 1'b1 : 1'b0;
 
   assign imemreq_msg_addr
     = ( reset ) ? reset_vector
@@ -245,6 +258,8 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   // VECTOR register file
   wire [127:0] v_rf_rdata0_Dhl; // todo - where do we get this data from instr to bits??
   wire [127:0] v_rf_rdata1_Dhl; // todo
+
+
 
   // Jump reg address
 
@@ -377,6 +392,7 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   reg [127:0] v_op0_mux_out_Xhl;
   reg [127:0] v_op1_mux_out_Xhl;
   reg [127:0] v_wdata_Xhl;
+  reg v_winter_Xhl;
 
   always @ (posedge clk) begin
     if( !stall_Xhl ) begin
@@ -390,6 +406,7 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
       v_op0_mux_out_Xhl <= v_op0_mux_out_Dhl;
       v_op1_mux_out_Xhl <= v_op1_mux_out_Dhl;
       v_wdata_Xhl <= v_wdata_Dhl;
+      v_winter_Xhl <= v_winter_Dhl;
     end
   end
 
@@ -442,6 +459,7 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   reg  [31:0] wdata_Mhl;
   reg  [127:0] v_execute_mux_out_Mhl;
   reg  [127:0] v_wdata_Mhl;
+  reg v_winter_Mhl;
 
   always @ (posedge clk) begin
     if( !stall_Mhl ) begin
@@ -450,6 +468,7 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
       wdata_Mhl           <= wdata_Xhl;
       v_execute_mux_out_Mhl <= v_execute_mux_out_Xhl;
       v_wdata_Mhl           <= v_wdata_Xhl;
+      v_winter_Mhl <= v_winter_Xhl;
     end
   end
 
@@ -632,12 +651,14 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   reg  [31:0] pc_X2hl;
   reg  [31:0] wb_mux_out_X2hl;
   reg [127:0] v_wb_mux_out_X2hl;
+  reg v_winter_X2hl;
 
   always @ (posedge clk) begin
     if( !stall_X2hl ) begin
       pc_X2hl                 <= pc_Mhl;
       wb_mux_out_X2hl         <= wb_mux_out_Mhl;
       v_wb_mux_out_X2hl         <= v_wb_mux_out_Mhl;
+      v_winter_X2hl <= v_winter_Mhl;
     end
   end
 
@@ -649,12 +670,14 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   reg  [31:0] pc_X3hl;
   reg  [31:0] wb_mux_out_X3hl;
   reg [127:0] v_wb_mux_out_X3hl;
+  reg v_winter_X3hl;
 
   always @ (posedge clk) begin
     if( !stall_X3hl ) begin
       pc_X3hl                 <= pc_X2hl;
       wb_mux_out_X3hl         <= wb_mux_out_X2hl;
       v_wb_mux_out_X3hl         <= v_wb_mux_out_X2hl;
+      v_winter_X3hl <= v_winter_X2hl;
     end
   end
   
@@ -713,12 +736,13 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   reg  [31:0] pc_Whl;
   reg  [31:0] wb_mux_out_Whl;
   reg  [127:0] v_wb_mux_out_Whl;
-
+  reg v_winter_Whl;
   always @ (posedge clk) begin
     if( !stall_Whl ) begin
       pc_Whl                 <= pc_X3hl;
       wb_mux_out_Whl         <= execute_mux_out_X3hl;
       v_wb_mux_out_Whl       <= v_execute_mux_out_X3hl;
+      v_winter_Whl <= v_winter_X3hl;
     end
   end
 
@@ -793,9 +817,9 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
     .v_waddr_p (rf_waddr_Whl),
     .v_widx_p  ({v_idx_Whl,2'd0}),
     .v_wdata_p (v_wb_mux_out_Whl),
-    .v_rinter0 (0),
-    .v_rinter1 (0),
-    .v_winter (0)
+    .v_rinter0 (v_rinter0_Dhl),
+    .v_rinter1 (v_rinter1_Dhl),
+    .v_winter (v_winter_Whl)
   );
 
   

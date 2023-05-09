@@ -176,6 +176,11 @@ module riscv_Core
   wire         v_dmemresp_queue_en_3_Mhl;
   wire         v_dmemresp_queue_val_3_Mhl;
 
+  wire [1:0]   v_acc_source1;
+  wire [1:0]   v_acc_source2;
+  wire         v_acc_dest;
+  wire 
+
   // wire          v_muldivreq_rdy_0;
   // wire          v_muldivreq_rdy_1;
   // wire          v_muldivreq_rdy_2;
@@ -401,7 +406,9 @@ module riscv_Core
   .v_dmemresp_queue_en_3_Mhl (v_dmemresp_queue_en_3_Mhl),
   .v_dmemresp_queue_val_3_Mhl (v_dmemresp_queue_val_3_Mhl),
 
-
+  .v_acc_source1 (v_acc_source1),
+  .v_acc_source2 (v_acc_source2),
+  .v_acc_dest (v_acc_dest),
 
     // Control Signals (dpath->ctrl)
     .VLR_temp_Xhl (VLR_temp_Xhl),
@@ -521,7 +528,9 @@ module riscv_Core
   .v_dmemresp_queue_en_3_Mhl (v_dmemresp_queue_en_3_Mhl),
   .v_dmemresp_queue_val_3_Mhl (v_dmemresp_queue_val_3_Mhl),
 
-
+  .v_acc_source1 (v_acc_source1),
+  .v_acc_source2 (v_acc_source2),
+  .v_acc_dest (v_acc_dest),
 
     // Control Signals (dpath->ctrl)
     .VLR_temp_Xhl (VLR_temp_Xhl),

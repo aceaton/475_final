@@ -120,6 +120,10 @@ module riscv_CoreCtrl
   output         v_dmemresp_queue_en_3_Mhl,
   output         v_dmemresp_queue_val_3_Mhl,
 
+  output [1:0]   v_acc_source1,
+  output [1:0]   v_acc_source2,
+  output         v_acc_dest,
+
   input          v_muldivreq_rdy_0,
   input          v_muldivreq_rdy_1,
   input          v_muldivreq_rdy_2,
@@ -447,21 +451,24 @@ module riscv_CoreCtrl
 
   // Accumulate decode logic
 
-  reg acc_stage;         //  stage 0: multiply, stage 1: add/sub
-  reg [1:0] acc_source1; // 0: imreg, 1: vs1, 2: vs2, 3: vd
-  reg [1:0] acc_source2; // 0: imreg, 1: vs1, 2: vs2, 3: vd
-  reg acc_dest;          // 0: imreg, 1: vd
+  reg v_acc_stage;         //  stage 0: multiply, stage 1: add/sub
+  reg [1:0] v_acc_source1; // 0: imreg, 1: vs1, 2: vs2, 3: vd
+  reg [1:0] v_acc_source2; // 0: imreg, 1: vs1, 2: vs2, 3: vd
+  reg v_acc_dest;          // 0: imreg, 1: vd
  
   always @(posedge clk) begin
     if (reset) begin
-      acc_stage <= 1'b0;
+      v_acc_stage <= 1'b0;
+      v_acc_source1 <= 2'd1;
+      v_acc_source2 <= 2'd2;
+      v_acc_dest <= 2'd3;
     end
     else begin
-        if(acc_stage == 1'b0 && v_idx_counter_done) begin
-          acc_stage <= 1'b1; 
+        if(v_acc_stage == 1'b0 && v_idx_counter_done) begin
+          v_acc_stage <= 1'b1; 
         end
-        else if (acc_stage == 1'b1 && v_idx_counter_done) begin
-          acc_stage <= 1'b0; 
+        else if (v_acc_stage == 1'b1 && v_idx_counter_done) begin
+          v_acc_stage <= 1'b0; 
         end
     end
   end
@@ -555,59 +562,59 @@ module riscv_CoreCtrl
       `RISCV_INST_MSG_VLSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, ld,  ml_w, dmm_w,  wm_mem, y,  rd, n   };
       `RISCV_INST_MSG_VSSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, st,  ml_w, dmm_w,  wm_mem, y,  rx, n   };
       `RISCV_INST_MSG_VMACC   :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vmacc,n,n,vc_n,y, n, br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd2;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd2;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vmacc,n,n,vc_n,y, n, br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd0;
-                                    acc_source2 = 2'd3;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd3;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end
       `RISCV_INST_MSG_VNMSAC  :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd2;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd2;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_sub,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd3;
-                                    acc_source2 = 2'd0;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd0;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end 
       `RISCV_INST_MSG_VMADD   :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vmadd,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd3;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd3;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vmadd,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd0;
-                                    acc_source2 = 2'd2;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd2;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end 
       `RISCV_INST_MSG_VNMSUB  :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd3;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd3;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_sub,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd2;
-                                    acc_source2 = 2'd0;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd0;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end 
 
