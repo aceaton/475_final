@@ -564,13 +564,13 @@ module riscv_CoreCtrl
       `RISCV_INST_MSG_VMACC   :begin
                                   if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vmacc,n,n,vc_n,y, n, br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd1;
+                                    v_acc_source1 = 2'd1;
                                     v_acc_source2 = 2'd2;
                                     v_acc_dest = 1'b0;
                                   end 
                                   else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vmacc,n,n,vc_n,y, n, br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd0;
+                                    v_acc_source1 = 2'd0;
                                     v_acc_source2 = 2'd3;
                                     v_acc_dest = 1'b1;
                                   end                               
@@ -578,13 +578,13 @@ module riscv_CoreCtrl
       `RISCV_INST_MSG_VNMSAC  :begin
                                   if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd1;
+                                    v_acc_source1 = 2'd1;
                                     v_acc_source2 = 2'd2;
                                     v_acc_dest = 1'b0;
                                   end 
                                   else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_sub,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd3;
+                                    v_acc_source1 = 2'd3;
                                     v_acc_source2 = 2'd0;
                                     v_acc_dest = 1'b1;
                                   end                               
@@ -592,13 +592,13 @@ module riscv_CoreCtrl
       `RISCV_INST_MSG_VMADD   :begin
                                   if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vmadd,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd1;
+                                    v_acc_source1 = 2'd1;
                                     v_acc_source2 = 2'd3;
                                     v_acc_dest = 1'b0;
                                   end 
                                   else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vmadd,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd0;
+                                    v_acc_source1 = 2'd0;
                                     v_acc_source2 = 2'd2;
                                     v_acc_dest = 1'b1;
                                   end                               
@@ -606,13 +606,13 @@ module riscv_CoreCtrl
       `RISCV_INST_MSG_VNMSUB  :begin
                                   if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd1;
+                                    v_acc_source1 = 2'd1;
                                     v_acc_source2 = 2'd3;
                                     v_acc_dest = 1'b0;
                                   end 
                                   else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_sub,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
-                                    acc_source1 = 2'd2;
+                                    v_acc_source1 = 2'd2;
                                     v_acc_source2 = 2'd0;
                                     v_acc_dest = 1'b1;
                                   end                               
@@ -1153,6 +1153,10 @@ module riscv_CoreCtrl
 
   reg [31:0] ir_X2hl;
   reg        dmemresp_queue_val_Mhl;
+  reg        v_dmemresp_queue_val_0_Mhl;
+  reg        v_dmemresp_queue_val_1_Mhl;
+  reg        v_dmemresp_queue_val_2_Mhl;
+  reg        v_dmemresp_queue_val_3_Mhl;
   reg        rf_wen_X2hl;
   reg  [4:0] rf_waddr_X2hl;
   reg        csr_wen_X2hl;

@@ -298,24 +298,24 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
 
 	// vector rdata0 bypass
 	wire [127:0] v_rdata0_byp_mux_out_Dhl
-		= ( rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata0_Dhl
+		= ( rdata0_byp_mux_sel_Dhl == 4'd0 ) || ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_rf_rdata0_Dhl
 		: ( rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
 	  : ( rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
 	  : ( rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
 		: ( rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
 		: ( rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
-    : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
+    // : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
 		:																			 128'bx;	
 
-  // vector rdata0 bypass
+  // vector rdata1 bypass
 	wire [127:0] v_rdata1_byp_mux_out_Dhl
-		= ( rdata0_byp_mux_sel_Dhl == 4'd0 ) ? v_rf_rdata1_Dhl
-		: ( rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
-	  : ( rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
-	  : ( rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
-		: ( rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
-		: ( rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
-    : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
+		= ( rdata1_byp_mux_sel_Dhl == 4'd0 ) || ( rdata1_byp_mux_sel_Dhl == 4'd6 ) ? v_rf_rdata1_Dhl
+		: ( rdata1_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
+	  : ( rdata1_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
+	  : ( rdata1_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
+		: ( rdata1_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
+		: ( rdata1_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+    // : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
 		:																			 128'bx;	
 
   // Operand 0 mux
@@ -505,11 +505,11 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   wire [31:0] v_dmemresp_lhu_0_Mhl
     = { {16{1'b0}}, v_dmemresp_msg_data_0[15:0] };
   wire [31:0] v_dmemresp_mux_out_0_Mhl
-    = ( v_dmemresp_mux_sel_0_Mhl == 3'd0 ) ? v_dmemresp_msg_data_0
-    : ( v_dmemresp_mux_sel_0_Mhl == 3'd1 ) ? v_dmemresp_lb_0_Mhl
-    : ( v_dmemresp_mux_sel_0_Mhl == 3'd2 ) ? v_dmemresp_lbu_0_Mhl
-    : ( v_dmemresp_mux_sel_0_Mhl == 3'd3 ) ? v_dmemresp_lh_0_Mhl
-    : ( v_dmemresp_mux_sel_0_Mhl == 3'd4 ) ? v_dmemresp_lhu_0_Mhl
+    = ( dmemresp_mux_sel_Mhl == 3'd0 ) ? v_dmemresp_msg_data_0
+    : ( dmemresp_mux_sel_Mhl == 3'd1 ) ? v_dmemresp_lb_0_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd2 ) ? v_dmemresp_lbu_0_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd3 ) ? v_dmemresp_lh_0_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd4 ) ? v_dmemresp_lhu_0_Mhl
     :                                    32'bx;
 
   wire [31:0] v_dmemresp_lb_1_Mhl
@@ -521,11 +521,11 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   wire [31:0] v_dmemresp_lhu_1_Mhl
     = { {16{1'b0}}, v_dmemresp_msg_data_1[15:0] };
   wire [31:0] v_dmemresp_mux_out_1_Mhl
-    = ( v_dmemresp_mux_sel_1_Mhl == 3'd0 ) ? v_dmemresp_msg_data_1
-    : ( v_dmemresp_mux_sel_1_Mhl == 3'd1 ) ? v_dmemresp_lb_1_Mhl
-    : ( v_dmemresp_mux_sel_1_Mhl == 3'd2 ) ? v_dmemresp_lbu_1_Mhl
-    : ( v_dmemresp_mux_sel_1_Mhl == 3'd3 ) ? v_dmemresp_lh_1_Mhl
-    : ( v_dmemresp_mux_sel_1_Mhl == 3'd4 ) ? v_dmemresp_lhu_1_Mhl
+    = ( dmemresp_mux_sel_Mhl == 3'd0 ) ? v_dmemresp_msg_data_1
+    : ( dmemresp_mux_sel_Mhl == 3'd1 ) ? v_dmemresp_lb_1_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd2 ) ? v_dmemresp_lbu_1_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd3 ) ? v_dmemresp_lh_1_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd4 ) ? v_dmemresp_lhu_1_Mhl
     :                                    32'bx;
 
   wire [31:0] v_dmemresp_lb_2_Mhl
@@ -537,11 +537,11 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   wire [31:0] v_dmemresp_lhu_2_Mhl
     = { {16{1'b0}}, v_dmemresp_msg_data_2[15:0] };
   wire [31:0] v_dmemresp_mux_out_2_Mhl
-    = ( v_dmemresp_mux_sel_2_Mhl == 3'd0 ) ? v_dmemresp_msg_data_2
-    : ( v_dmemresp_mux_sel_2_Mhl == 3'd1 ) ? v_dmemresp_lb_2_Mhl
-    : ( v_dmemresp_mux_sel_2_Mhl == 3'd2 ) ? v_dmemresp_lbu_2_Mhl
-    : ( v_dmemresp_mux_sel_2_Mhl == 3'd3 ) ? v_dmemresp_lh_2_Mhl
-    : ( v_dmemresp_mux_sel_2_Mhl == 3'd4 ) ? v_dmemresp_lhu_2_Mhl
+    = ( dmemresp_mux_sel_Mhl == 3'd0 ) ? v_dmemresp_msg_data_2
+    : ( dmemresp_mux_sel_Mhl == 3'd1 ) ? v_dmemresp_lb_2_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd2 ) ? v_dmemresp_lbu_2_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd3 ) ? v_dmemresp_lh_2_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd4 ) ? v_dmemresp_lhu_2_Mhl
     :                                    32'bx;
 
   wire [31:0] v_dmemresp_lb_3_Mhl
@@ -553,11 +553,11 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   wire [31:0] v_dmemresp_lhu_3_Mhl
     = { {16{1'b0}}, v_dmemresp_msg_data_3[15:0] };
   wire [31:0] v_dmemresp_mux_out_3_Mhl
-    = ( v_dmemresp_mux_sel_3_Mhl == 3'd0 ) ? v_dmemresp_msg_data_3
-    : ( v_dmemresp_mux_sel_3_Mhl == 3'd1 ) ? v_dmemresp_lb_3_Mhl
-    : ( v_dmemresp_mux_sel_3_Mhl == 3'd2 ) ? v_dmemresp_lbu_3_Mhl
-    : ( v_dmemresp_mux_sel_3_Mhl == 3'd3 ) ? v_dmemresp_lh_3_Mhl
-    : ( v_dmemresp_mux_sel_3_Mhl == 3'd4 ) ? v_dmemresp_lhu_3_Mhl
+    = ( dmemresp_mux_sel_Mhl == 3'd0 ) ? v_dmemresp_msg_data_3
+    : ( dmemresp_mux_sel_Mhl == 3'd1 ) ? v_dmemresp_lb_3_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd2 ) ? v_dmemresp_lbu_3_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd3 ) ? v_dmemresp_lh_3_Mhl
+    : ( dmemresp_mux_sel_Mhl == 3'd4 ) ? v_dmemresp_lhu_3_Mhl
     :                                    32'bx;
 
 
@@ -807,10 +807,10 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   (
     .clk     (clk),
     .v_raddr0  (rf_raddr0_Dhl),
-    .v_ridx0 (v_idx_Dhl),
+    .v_ridx0 ({v_idx_Dhl,2'b0}),
     .v_rdata0  (v_rf_rdata0_Dhl),
     .v_raddr1  (rf_raddr1_Dhl),
-    .v_ridx1 (v_idx_Dhl),
+    .v_ridx1 ({v_idx_Dhl,2'b0}),
     .v_rdata1  (v_rf_rdata1_Dhl),
     .v_lanes (v_lanes_Whl),
     .v_wen_p   ((rf_wen_Whl&&v_isvec_Whl)),
@@ -976,9 +976,9 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
       = (!v_isvec_X3hl) ? s_muldivresp_val 
       :                 (v_muldivresp_val_0 && v_muldivresp_val_1 && v_muldivresp_val_2 && v_muldivresp_val_3);
   
-  assign muldivreq_rdy
-      = (!v_isvec_Dhl) ? s_muldivreq_rdy 
-      :                 (v_muldivresq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3);
+  // assign a_muldivreq_rdy
+  //     = (!v_isvec_Dhl) ? muldivreq_rdy 
+  //     :                 (v_muldivresq_rdy_0 && v_muldivreq_rdy_1 && v_muldivreq_rdy_2 && v_muldivreq_rdy_3);
 
 
 endmodule
