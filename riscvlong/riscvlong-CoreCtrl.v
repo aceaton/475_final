@@ -863,16 +863,16 @@ module riscv_CoreCtrl
 	  :  3'd0;	
 
   wire rdata1_byp_mux_sel_Dhl 	
-		= ( rs2_en_Dhl && rf_wen_Xhl && (rs2_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl &&(vrs2 == v_isvec_Xhl)) ||
-    ( rs2_en_Dhl && rf_wen_Xhl && (rf_waddr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl &&(vrs2 == v_isvec_Xhl)&&v_isvec_Xhl&&v_isstore_Dhl) ? 3'd1
-	  : ( rs2_en_Dhl && rf_wen_Mhl && (rs2_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl &&(vrs2 == v_isvec_Mhl)) ||
-    ( rs2_en_Dhl && rf_wen_Mhl && (rf_waddr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl &&(vrs2 == v_isvec_Mhl))&&v_isvec_Mhl&&v_isstore_Dhl? 3'd2
-	  : ( rs2_en_Dhl && rf_wen_X2hl && (rs2_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl&&(vrs2 == v_isvec_X2hl) ) ||
-    ( rs2_en_Dhl && rf_wen_X2hl && (rf_waddr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl&&(vrs2 == v_isvec_X2hl) &&v_isvec_Mhl&&v_isstore_Dhl) ? 3'd3
-	  : ( rs2_en_Dhl && rf_wen_X3hl && (rs2_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl &&(vrs2 == v_isvec_X3hl))
-    || ( rs2_en_Dhl && rf_wen_X3hl && (rf_waddr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl &&(vrs2 == v_isvec_X3hl)&&v_isvec_X3hl&&v_isstore_Dhl) ? 3'd4
-	  : ( rs2_en_Dhl && rf_wen_Whl && (rs2_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl &&(vrs2 == v_isvec_Whl))||
-    ( rs2_en_Dhl && rf_wen_Whl && (rf_waddr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl &&(vrs2 == v_isvec_Whl)&&v_isvec_Whl&&v_isstore_Dhl) ? 3'd5
+		= ( rs2_en_Dhl && rf_wen_Xhl && (rs2_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl && (vrs2 == v_isvec_Xhl)) ||
+      ( rs2_en_Dhl && rf_wen_Xhl && (rf_waddr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl && (vrs2 == v_isvec_Xhl) && v_isvec_Xhl && v_isstore_Dhl) ? 3'd1
+	  : ( rs2_en_Dhl && rf_wen_Mhl && (rs2_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl && (vrs2 == v_isvec_Mhl)) ||
+      ( rs2_en_Dhl && rf_wen_Mhl && (rf_waddr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl && (vrs2 == v_isvec_Mhl)) && v_isvec_Mhl && v_isstore_Dhl? 3'd2
+	  : ( rs2_en_Dhl && rf_wen_X2hl && (rs2_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl && (vrs2 == v_isvec_X2hl)) ||
+      ( rs2_en_Dhl && rf_wen_X2hl && (rf_waddr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl && (vrs2 == v_isvec_X2hl) &&v_isvec_Mhl && v_isstore_Dhl) ? 3'd3
+	  : ( rs2_en_Dhl && rf_wen_X3hl && (rs2_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl && (vrs2 == v_isvec_X3hl))
+   || ( rs2_en_Dhl && rf_wen_X3hl && (rf_waddr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl && (vrs2 == v_isvec_X3hl) && v_isvec_X3hl && v_isstore_Dhl) ? 3'd4
+	  : ( rs2_en_Dhl && rf_wen_Whl && (rs2_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl && (vrs2 == v_isvec_Whl))||
+      ( rs2_en_Dhl && rf_wen_Whl && (rf_waddr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl && (vrs2 == v_isvec_Whl) && v_isvec_Whl && v_isstore_Dhl) ? 3'd5
 	  :  3'd0;	
 
 // store logic??
