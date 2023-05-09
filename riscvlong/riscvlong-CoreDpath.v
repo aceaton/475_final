@@ -298,23 +298,23 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
 
 	// vector rdata0 bypass
 	wire [127:0] v_rdata0_byp_mux_out_Dhl
-		= ( rdata0_byp_mux_sel_Dhl == 4'd0 ) || ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_rf_rdata0_Dhl
-		: ( rdata0_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
-	  : ( rdata0_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
-	  : ( rdata0_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
-		: ( rdata0_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
-		: ( rdata0_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+		= ( rdata0_byp_mux_sel_Dhl == 3'd0 ) || ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_rf_rdata0_Dhl
+		: ( rdata0_byp_mux_sel_Dhl == 3'd1 ) ? v_execute_mux_out_Xhl
+	  : ( rdata0_byp_mux_sel_Dhl == 3'd2 ) ? v_wb_mux_out_Mhl
+	  : ( rdata0_byp_mux_sel_Dhl == 3'd3 ) ? v_wb_mux_out_X2hl
+		: ( rdata0_byp_mux_sel_Dhl == 3'd4 ) ? v_execute_mux_out_X3hl
+		: ( rdata0_byp_mux_sel_Dhl == 3'd5 ) ? v_wb_mux_out_Whl
     // : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
 		:																			 128'bx;	
 
   // vector rdata1 bypass
 	wire [127:0] v_rdata1_byp_mux_out_Dhl
-		= ( rdata1_byp_mux_sel_Dhl == 4'd0 ) || ( rdata1_byp_mux_sel_Dhl == 4'd6 ) ? v_rf_rdata1_Dhl
-		: ( rdata1_byp_mux_sel_Dhl == 4'd1 ) ? v_execute_mux_out_Xhl
-	  : ( rdata1_byp_mux_sel_Dhl == 4'd2 ) ? v_wb_mux_out_Mhl
-	  : ( rdata1_byp_mux_sel_Dhl == 4'd3 ) ? v_wb_mux_out_X2hl
-		: ( rdata1_byp_mux_sel_Dhl == 4'd4 ) ? v_execute_mux_out_X3hl
-		: ( rdata1_byp_mux_sel_Dhl == 4'd5 ) ? v_wb_mux_out_Whl
+		= ( rdata1_byp_mux_sel_Dhl == 3'd0 ) || ( rdata1_byp_mux_sel_Dhl == 4'd6 ) ? v_rf_rdata1_Dhl
+		: ( rdata1_byp_mux_sel_Dhl == 3'd1 ) ? v_execute_mux_out_Xhl
+	  : ( rdata1_byp_mux_sel_Dhl == 3'd2 ) ? v_wb_mux_out_Mhl
+	  : ( rdata1_byp_mux_sel_Dhl == 3'd3 ) ? v_wb_mux_out_X2hl
+		: ( rdata1_byp_mux_sel_Dhl == 3'd4 ) ? v_execute_mux_out_X3hl
+		: ( rdata1_byp_mux_sel_Dhl == 3'd5 ) ? v_wb_mux_out_Whl
     // : ( rdata0_byp_mux_sel_Dhl == 4'd6 ) ? v_intermediate_reg
 		:																			 128'bx;	
 
@@ -350,10 +350,10 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
 
   // Operand 1 mux
 
-  wire [31:0] v_off0_Dhl = (v_idx_Dhl << 7) * rdata1_byp_mux_out_Dhl; // stride
-  wire [31:0] v_off1_Dhl = ((v_idx_Dhl<<2 + 32'd1) << 5) * rdata1_byp_mux_out_Dhl; // stride
-  wire [31:0] v_off2_Dhl = ((v_idx_Dhl<<2 + 32'd2) << 5) * rdata1_byp_mux_out_Dhl;// stride
-  wire [31:0] v_off3_Dhl = ((v_idx_Dhl<<2 + 32'd3) << 5) * rdata1_byp_mux_out_Dhl; // stride
+  wire [31:0] v_off0_Dhl = (v_idx_Dhl<<2); // stride
+  wire [31:0] v_off1_Dhl = ((v_idx_Dhl<<2 )+4) ; // stride
+  wire [31:0] v_off2_Dhl = ((v_idx_Dhl<<2) + 8) ;// stride
+  wire [31:0] v_off3_Dhl = ((v_idx_Dhl<<2 )+ 12) ; // stride
 
   wire [127:0] v_op1_mux_out_Dhl
     = ( op1_mux_sel_Dhl == 3'd0 ) ? v_rdata1_byp_mux_out_Dhl
@@ -364,9 +364,9 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
   reg [5:0] tVLR_temp_Xhl;
 
   wire [5:0] VLR_temp_Dhl
-    = (v_vlr_mux_sel == 2'd0) ? tVLR_temp_Xhl
+    = (v_vlr_mux_sel == 2'd0) ? 6'd8
     : (v_vlr_mux_sel == 2'd2) ? imm_u_Dhl[5:0]
-    :                           tVLR_temp_Xhl;
+    :                           6'd8;
   
   assign VLR_temp_Xhl = tVLR_temp_Xhl;
 

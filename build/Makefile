@@ -97,6 +97,7 @@ tests = \
   riscv-sb.vmh \
   riscv-sh.vmh \
   ubmark-vvadd.vmh \
+  ubmark-vvadd1.vmh \
 
 riscvstall_rtl_sim = riscvstall-sim
 riscvstall_rtl_rand_sim = riscvstall-randdelay-sim
