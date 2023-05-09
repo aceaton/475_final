@@ -407,6 +407,8 @@ assign muldivresp_val = (((v_muldivresp_val_0 ||v_muldivresp_val_1) || (v_muldiv
       v_op1_mux_out_Xhl <= v_op1_mux_out_Dhl;
       v_wdata_Xhl <= v_wdata_Dhl;
       v_winter_Xhl <= v_winter_Dhl;
+
+      VLR_temp_Xhl<=VLR_temp_Dhl;
     end
   end
 

@@ -20,11 +20,11 @@ module riscv_CoreDpathVectorRegfile
   input  [ 5:0]  v_ridx0,     // Read 0 address (combinational input)
   output [127:0] v_rdata0,    // Read 0 data (combinational on raddr)
   input  [ 4:0]  v_raddr1,    // Read 0 address (combinational input)
-  input  [ 3:0]  v_ridx1,     // Read 0 address (combinational input)
+  input  [ 5:0]  v_ridx1,     // Read 0 address (combinational input)
   output [127:0] v_rdata1,    // Read 0 data (combinational on raddr)
   input  [1:0]   v_lanes,
   input          v_wen_p,     // Write enable (sample on rising clk edge)
-  input  [ 5:0]  v_waddr_p,   // Write address (sample on rising clk edge)
+  input  [ 4:0]  v_waddr_p,   // Write address (sample on rising clk edge)
   input  [ 5:0]  v_widx_p,    // Read 0 address (combinational input)
   input  [127:0] v_wdata_p,   // Write data (sample on rising clk edge)
   input v_rinter0,

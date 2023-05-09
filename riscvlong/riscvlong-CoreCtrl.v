@@ -630,7 +630,7 @@ module riscv_CoreCtrl
 
   // VECTOR CONTROLS - need to be modified as per updated control bundle - Mihir
   wire       v_isvec_Dhl = cs[`RISCV_INST_MSG_IS_VOP]; 
-  wire       v_isvstore = cs[`RISCV_INST_MSG_IS_VSTORE]; 
+  wire       v_isstore_Dhl = cs[`RISCV_INST_MSG_IS_VSTORE]; 
   wire       v_isvconf = cs[`RISCV_INST_MSG_VCONF_TYPE]; 
 
   assign v_vlr_mux_sel = v_isvconf;
