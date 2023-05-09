@@ -92,9 +92,11 @@ module riscv_CoreDpath
   input         v_isvec_X3hl,
   input   [3:0] v_idx_Dhl,
   input   [3:0] v_idx_Whl,
-  input v_rinter0_Dhl,
-  input v_rinter1_Dhl,
-  input v_winter_Whl,
+  // input v_rinter0_Dhl,
+  // input v_rinter1_Dhl,
+  // input v_winter_Whl,
+
+  input         v_vlr_mux_sel,
 
   input         v_dmemresp_queue_en_0_Mhl,
   input         v_dmemresp_queue_val_0_Mhl,
@@ -117,7 +119,9 @@ module riscv_CoreDpath
   output        branch_cond_ltu_Xhl,
   output        branch_cond_ge_Xhl,
   output        branch_cond_geu_Xhl,
-  output [31:0] proc2csr_data_Whl
+  output [31:0] proc2csr_data_Whl,
+
+  output  [5:0] VLR_temp_Xhl
   // we could process the csrs (vl) in dp and send across, or just not
 );
 
@@ -336,7 +340,9 @@ module riscv_CoreDpath
     : ( v_op1_mux_sel_Dhl == 2'd2 ) ? {const0,const0,const0,const0}
     :                               128'bx;
 
-    
+  wire [6:0]  VLR_temp_Xhl
+    = (v_vlr_mux_sel == )
+
   // VECTOR dont have more muxes cuz we dont need anything other than the bypass mux sel, we're not adding vector immediates
   // WAIT yeah it does but just for addresses for mem - > figure that tf out ahadkfalkdjs 
 
