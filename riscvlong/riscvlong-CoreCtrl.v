@@ -751,7 +751,7 @@ module riscv_CoreCtrl
 
   // the number of lanes to enable
   // if we're on the last chunk of elements, use VLR % 4, otherwise use all lanes
-  wire v_lanes_Dhl = (v_idx == num_iters) ? (VLR_temp_Xhl[1:0]) : 2'd3;
+  wire [1:0] v_lanes_Dhl = (v_idx == num_iters) ? (VLR_temp_Xhl[1:0]) : 2'd3;
   
   // 1 when counter is 1 cycle from finishing
   reg v_idx_counter_done;
@@ -945,7 +945,7 @@ module riscv_CoreCtrl
   //vec
   reg v_isvec_Xhl;
   reg [3:0] v_idx_Xhl;
-  reg v_lanes_Xhl;
+  reg [1:0] v_lanes_Xhl;
 
   // Pipeline Controls
 
@@ -1180,7 +1180,7 @@ module riscv_CoreCtrl
   //vec
   reg v_isvec_X2hl;
   reg [3:0] v_idx_X2hl;
-  reg v_lanes_X2hl;
+  reg [1:0] v_lanes_X2hl;
   
 	wire inst_val_X2hl = ( !bubble_X2hl && !squash_X2hl );
   wire squash_X2hl = 1'b0;
@@ -1235,7 +1235,7 @@ module riscv_CoreCtrl
   //vec
   reg v_isvec_X3hl;
   reg [3:0] v_idx_X3hl;
-  reg v_lanes_X3hl;
+  reg [1:0] v_lanes_X3hl;
   
 	wire inst_val_X3hl = ( !bubble_X3hl && !squash_X3hl );
   wire squash_X3hl = 1'b0;
