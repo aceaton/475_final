@@ -120,6 +120,10 @@ module riscv_CoreCtrl
   output         v_dmemresp_queue_en_3_Mhl,
   output         v_dmemresp_queue_val_3_Mhl,
 
+  output [1:0]   v_acc_source1,
+  output [1:0]   v_acc_source2,
+  output         v_acc_dest,
+
   input          v_muldivreq_rdy_0,
   input          v_muldivreq_rdy_1,
   input          v_muldivreq_rdy_2,
@@ -440,8 +444,6 @@ module riscv_CoreCtrl
   wire [4:0] rs2 = inst_rs2_Dhl;
   wire [4:0] rd  = inst_rd_Dhl;
 
-  // wire [4:0] vrs1  = inst_rs1_Dhl;
-  // wire [4:0] vrs2  = inst_rs2_Dhl;
   // Instruction Decode
 
   localparam cs_sz = `RISCV_INST_MSG_CS_SZ;
@@ -449,21 +451,24 @@ module riscv_CoreCtrl
 
   // Accumulate decode logic
 
-  reg acc_stage; //  stage 0: multiply, stage 1: add/sub
-  reg [1:0] acc_source1; // 0: imreg, 1: vs1, 2: vs2, 3: vd
-  reg [1:0] acc_source2; // 0: imreg, 1: vs1, 2: vs2, 3: vd
-  reg acc_dest; // 0: imreg, 1: vd
+  reg v_acc_stage;         //  stage 0: multiply, stage 1: add/sub
+  reg [1:0] v_acc_source1; // 0: imreg, 1: vs1, 2: vs2, 3: vd
+  reg [1:0] v_acc_source2; // 0: imreg, 1: vs1, 2: vs2, 3: vd
+  reg v_acc_dest;          // 0: imreg, 1: vd
  
   always @(posedge clk) begin
     if (reset) begin
-      acc_stage <= 1'b0;
+      v_acc_stage <= 1'b0;
+      v_acc_source1 <= 2'd1;
+      v_acc_source2 <= 2'd2;
+      v_acc_dest <= 2'd3;
     end
     else begin
-        if(acc_stage == 1'b0 && v_idx_counter_done) begin
-          acc_stage <= 1'b1; 
+        if(v_acc_stage == 1'b0 && v_idx_counter_done) begin
+          v_acc_stage <= 1'b1; 
         end
-        else if (acc_stage == 1'b1 && v_idx_counter_done) begin
-          acc_stage <= 1'b0; 
+        else if (v_acc_stage == 1'b1 && v_idx_counter_done) begin
+          v_acc_stage <= 1'b0; 
         end
     end
   end
@@ -557,59 +562,59 @@ module riscv_CoreCtrl
       `RISCV_INST_MSG_VLSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, ld,  ml_w, dmm_w,  wm_mem, y,  rd, n   };
       `RISCV_INST_MSG_VSSE    :cs= {n,n,y,vmac_x,y,n,vc_n,y,  n,    br_none, pm_p,      3'd1, y,     3'd1,  y,  alu_x,    md_x,    n, mdm_x, em_alu, st,  ml_w, dmm_w,  wm_mem, y,  rx, n   };
       `RISCV_INST_MSG_VMACC   :begin
-                                  if(acc_stage == 1'b0) begin
-                                    cs= {y,y,y,vmacc,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
+                                  if(v_acc_stage == 1'b0) begin
+                                    cs= {y,y,y,vmacc,n,n,vc_n,y, n, br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd2;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd2;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
-                                    cs= {y,y,y,vmacc,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
+                                  else if(v_acc_stage == 1'b1) begin
+                                    cs= {y,y,y,vmacc,n,n,vc_n,y, n, br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd0;
-                                    acc_source2 = 2'd3;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd3;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end
       `RISCV_INST_MSG_VNMSAC  :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd2;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd2;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_sub,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd3;
-                                    acc_source2 = 2'd0;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd0;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end 
       `RISCV_INST_MSG_VMADD   :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vmadd,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd3;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd3;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vmadd,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_add,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd0;
-                                    acc_source2 = 2'd2;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd2;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end 
       `RISCV_INST_MSG_VNMSUB  :begin
-                                  if(acc_stage == 1'b0) begin
+                                  if(v_acc_stage == 1'b0) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_x,    md_mul,  y, mdm_l, em_md,  nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd1;
-                                    acc_source2 = 2'd3;
-                                    acc_dest = 1'b0;
+                                    v_acc_source2 = 2'd3;
+                                    v_acc_dest = 1'b0;
                                   end 
-                                  else if(acc_stage == 1'b1) begin
+                                  else if(v_acc_stage == 1'b1) begin
                                     cs= {y,y,y,vnmsac,n,n,vc_n,y,  n,    br_none, pm_p,   am_rdat, y,  bm_rdat,  y,  alu_sub,  md_x,    n, mdm_x, em_alu, nr,  ml_x, dmm_x,  wm_alu, y,  rd, n   };
                                     acc_source1 = 2'd2;
-                                    acc_source2 = 2'd0;
-                                    acc_dest = 1'b1;
+                                    v_acc_source2 = 2'd0;
+                                    v_acc_dest = 1'b1;
                                   end                               
                                 end 
 
@@ -739,9 +744,13 @@ module riscv_CoreCtrl
   // number of iterations we need to send every element in the vector to X
   wire [3:0] num_iters = VLR_temp_Xhl[5:2];
 
+  // make a register; assign port wire to be equal to register
+  reg    [3:0] v_idx;
+  assign v_idx_Dhl = v_idx;
+
   // the number of lanes to enable
   // if we're on the last chunk of elements, use VLR % 4, otherwise use all lanes
-  wire v_lanes_Dhl = (v_idx_Dhl == num_iters) ? (VLR_temp_Xhl[1:0]) : 2'd3;
+  wire v_lanes_Dhl = (v_idx == num_iters) ? (VLR_temp_Xhl[1:0]) : 2'd3;
   
   // 1 when counter is 1 cycle from finishing
   reg v_idx_counter_done;
@@ -750,12 +759,12 @@ module riscv_CoreCtrl
   wire v_stall_Dhl = v_isvec_Dhl && !v_idx_counter_done;
 
   // increment vector register file element pointer by 1
-  wire [3:0] v_idx_Dhl_next = v_idx_Dhl + 4'b1;
+  wire [3:0] v_idx_next = v_idx + 4'b1;
   
   always @ ( posedge clk ) begin
     // reset if reset or taken branch in Xhl
     if ( reset || brj_taken_Xhl) begin
-      v_idx_Dhl <= 4'd0;
+      v_idx <= 4'd0;
       v_idx_counter_done <= 1'b0; // default is unfinished state
     end
 
@@ -763,17 +772,17 @@ module riscv_CoreCtrl
     else if (v_isvec_Dhl) begin
 
       // increment vector register index if less than number of iterations
-      if (v_idx_Dhl < num_iters) begin
+      if (v_idx < num_iters) begin
         // if 1 away from finishing, counter is done on next cycle
-        if (v_idx_Dhl == (num_iters - 4'd1)) begin
+        if (v_idx == (num_iters - 4'd1)) begin
           v_idx_counter_done <= 1'b1;
         end
-        v_idx_Dhl <= v_idx_Dhl_next;
+        v_idx <= v_idx_next;
       end
 
       // if done incrementing, reset 
       else begin
-        v_idx_Dhl <= 4'd0;
+        v_idx <= 4'd0;
         v_idx_counter_done <= 1'b0; // prepare to receive next v op
       end
     end
@@ -850,11 +859,11 @@ module riscv_CoreCtrl
                               && ( rf_waddr_X2hl != 5'd0 ) )
 												 );
 
-  wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhll;
+  wire stall_hazard_Dhl = v_stall_hazard_Dhl || s_stall_hazard_Dhl;
 
 	// Bypassing logic from X, M, X2, X3, W to D
 	
-	wire rdata0_byp_mux_sel_Dhl
+	assign rdata0_byp_mux_sel_Dhl
 		= ( rs1_en_Dhl && rf_wen_Xhl && (rs1_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl && (vrs1 == v_isvec_Xhl) ) ? 3'd1
 	  : ( rs1_en_Dhl && rf_wen_Mhl && (rs1_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl  && (vrs1 == v_isvec_Mhl)) ? 3'd2
 	  : ( rs1_en_Dhl && rf_wen_X2hl && (rs1_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl  && (vrs1 == v_isvec_X2hl)) ? 3'd3
@@ -862,17 +871,17 @@ module riscv_CoreCtrl
 	  : ( rs1_en_Dhl && rf_wen_Whl && (rs1_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl  && (vrs1 == v_isvec_Whl)) ? 3'd5
 	  :  3'd0;	
 
-  wire rdata1_byp_mux_sel_Dhl 	
-		= ( rs2_en_Dhl && rf_wen_Xhl && (rs2_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl &&(vrs2 == v_isvec_Xhl)) ||
-    ( rs2_en_Dhl && rf_wen_Xhl && (rf_waddr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl &&(vrs2 == v_isvec_Xhl)&&v_isvec_Xhl&&v_isstore_Dhl) ? 3'd1
-	  : ( rs2_en_Dhl && rf_wen_Mhl && (rs2_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl &&(vrs2 == v_isvec_Mhl)) ||
-    ( rs2_en_Dhl && rf_wen_Mhl && (rf_waddr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl &&(vrs2 == v_isvec_Mhl))&&v_isvec_Mhl&&v_isstore_Dhl? 3'd2
-	  : ( rs2_en_Dhl && rf_wen_X2hl && (rs2_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl&&(vrs2 == v_isvec_X2hl) ) ||
-    ( rs2_en_Dhl && rf_wen_X2hl && (rf_waddr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl&&(vrs2 == v_isvec_X2hl) &&v_isvec_Mhl&&v_isstore_Dhl) ? 3'd3
-	  : ( rs2_en_Dhl && rf_wen_X3hl && (rs2_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl &&(vrs2 == v_isvec_X3hl))
-    || ( rs2_en_Dhl && rf_wen_X3hl && (rf_waddr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl &&(vrs2 == v_isvec_X3hl)&&v_isvec_X3hl&&v_isstore_Dhl) ? 3'd4
-	  : ( rs2_en_Dhl && rf_wen_Whl && (rs2_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl &&(vrs2 == v_isvec_Whl))||
-    ( rs2_en_Dhl && rf_wen_Whl && (rf_waddr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl &&(vrs2 == v_isvec_Whl)&&v_isvec_Whl&&v_isstore_Dhl) ? 3'd5
+  assign rdata1_byp_mux_sel_Dhl 	
+		= ( rs2_en_Dhl && rf_wen_Xhl && (rs2_addr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl && (vrs2 == v_isvec_Xhl)) ||
+      ( rs2_en_Dhl && rf_wen_Xhl && (rf_waddr_Dhl == rf_waddr_Xhl) && (rf_waddr_Xhl != 5'd0) && inst_val_Xhl && (vrs2 == v_isvec_Xhl) && v_isvec_Xhl && v_isstore_Dhl) ? 3'd1
+	  : ( rs2_en_Dhl && rf_wen_Mhl && (rs2_addr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl && (vrs2 == v_isvec_Mhl)) ||
+      ( rs2_en_Dhl && rf_wen_Mhl && (rf_waddr_Dhl == rf_waddr_Mhl) && (rf_waddr_Mhl != 5'd0) && inst_val_Mhl && (vrs2 == v_isvec_Mhl)) && v_isvec_Mhl && v_isstore_Dhl? 3'd2
+	  : ( rs2_en_Dhl && rf_wen_X2hl && (rs2_addr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl && (vrs2 == v_isvec_X2hl)) ||
+      ( rs2_en_Dhl && rf_wen_X2hl && (rf_waddr_Dhl == rf_waddr_X2hl) && (rf_waddr_X2hl != 5'd0) && inst_val_X2hl && (vrs2 == v_isvec_X2hl) &&v_isvec_Mhl && v_isstore_Dhl) ? 3'd3
+	  : ( rs2_en_Dhl && rf_wen_X3hl && (rs2_addr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl && (vrs2 == v_isvec_X3hl))
+   || ( rs2_en_Dhl && rf_wen_X3hl && (rf_waddr_Dhl == rf_waddr_X3hl) && (rf_waddr_X3hl != 5'd0) && inst_val_X3hl && (vrs2 == v_isvec_X3hl) && v_isvec_X3hl && v_isstore_Dhl) ? 3'd4
+	  : ( rs2_en_Dhl && rf_wen_Whl && (rs2_addr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl && (vrs2 == v_isvec_Whl))||
+      ( rs2_en_Dhl && rf_wen_Whl && (rf_waddr_Dhl == rf_waddr_Whl) && (rf_waddr_Whl != 5'd0) && inst_val_Whl && (vrs2 == v_isvec_Whl) && v_isvec_Whl && v_isstore_Dhl) ? 3'd5
 	  :  3'd0;	
 
 // store logic??
@@ -1258,8 +1267,8 @@ module riscv_CoreCtrl
 
   //vec
   reg v_isvec_Whl;
-  reg v_idx_Whl;
-  reg v_lanes_Whl;
+  reg [3:0] v_idx_Whl;
+  reg [1:0] v_lanes_Whl;
 
   // Pipeline Controls
 

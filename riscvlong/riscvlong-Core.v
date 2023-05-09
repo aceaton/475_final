@@ -97,7 +97,7 @@ module riscv_Core
   wire [31:2] v_dmemresp_msg_data_2;
   wire        v_dmemreq_msg_rw_3;
   wire  [1:3] v_dmemreq_msg_len_3;
-  wire [31:3] v_dmemreq_msg_addr_3;
+  wire [31:3] v_dmemreq_msg_addr_3; 
   wire [31:3] v_dmemreq_msg_data_3;
   wire [31:3] v_dmemresp_msg_data_3;
   wire        v_muldivreq_rdy_0;
@@ -175,6 +175,11 @@ module riscv_Core
   wire         v_dmemresp_queue_val_2_Mhl;
   wire         v_dmemresp_queue_en_3_Mhl;
   wire         v_dmemresp_queue_val_3_Mhl;
+
+  wire [1:0]   v_acc_source1;
+  wire [1:0]   v_acc_source2;
+  wire         v_acc_dest;
+  wire 
 
   // wire          v_muldivreq_rdy_0;
   // wire          v_muldivreq_rdy_1;
@@ -367,7 +372,7 @@ module riscv_Core
       // VECTOR ADDED
   // input   [8:0] v_rf_waddr_Whl, // 5 bits for addr, 4 bits for the vector idx (bc its a 6 bit space but we go on mults of 4)
     .rf_waddr_Dhl           (rf_waddr_Dhl ),
-    .v_lanes_Whl (v_lanes_Whl),
+    .v_lanes_Whl            (v_lanes_Whl),
      // idx of last used lane of the 4 lanes - also even needed? for writeout ig
   // input         v_wfrom_intermediate_Whl, // whether or not to write from the intermediate vector register in the case of acc
   // do we do a read from intermediate? or do we just put that in the bypass signal but as an extra lane (probs latter)
@@ -375,14 +380,14 @@ module riscv_Core
 	  .v_rdata1_byp_mux_sel_Dhl (v_rdata1_byp_mux_sel_Dhl), // NOTE: it's one more bit 
   // output   [1:0] v_op0_mux_sel_Dhl, //how many bits????????
   // output   [1:0] v_op1_mux_sel_Dhl,
-    .v_isstore_Dhl (v_isstore_Dhl),
-    .v_isvec_Whl (v_isvec_Whl), // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
+    .v_isstore_Dhl          (v_isstore_Dhl),
+    .v_isvec_Whl            (v_isvec_Whl), // whether or not it's a vdctor instrcution, needed in wb step only - UPDATE is it even needed? for writeout yea
   // waddr stuff is pipelined all the way throuhg in control for byp logic purposes, rest comes over to dpath asap and then is pipelineed over here
   // meoryyy stuff
-  .v_isvec_Dhl (v_isvec_Dhl),
-  .v_isvec_X3hl (v_isvec_X3hl),
-  .v_idx_Dhl (v_idx_Dhl),
-  .v_idx_Whl (v_idx_Whl),
+  .v_isvec_Dhl              (v_isvec_Dhl),
+  .v_isvec_X3hl             (v_isvec_X3hl),
+  .v_idx_Dhl                (v_idx_Dhl),
+  .v_idx_Whl                (v_idx_Whl),
   // output         v_rinter0_Dhl,
   // output         v_rinter1_Dhl,
   // output         v_winter_Whl,
@@ -391,19 +396,16 @@ module riscv_Core
 
   .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_0_Mhl),
   .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_0_Mhl),
-  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_1_Mhl),
-  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_1_Mhl),
-  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_2_Mhl),
-  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_2_Mhl),
-  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_3_Mhl),
-  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_3_Mhl),
+  .v_dmemresp_queue_en_1_Mhl (v_dmemresp_queue_en_1_Mhl),
+  .v_dmemresp_queue_val_1_Mhl (v_dmemresp_queue_val_1_Mhl),
+  .v_dmemresp_queue_en_2_Mhl (v_dmemresp_queue_en_2_Mhl),
+  .v_dmemresp_queue_val_2_Mhl (v_dmemresp_queue_val_2_Mhl),
+  .v_dmemresp_queue_en_3_Mhl (v_dmemresp_queue_en_3_Mhl),
+  .v_dmemresp_queue_val_3_Mhl (v_dmemresp_queue_val_3_Mhl),
 
-  .v_muldivreq_rdy_0 (v_muldivreq_rdy_0),
-  .v_muldivreq_rdy_1 (v_muldivreq_rdy_1),
-  .v_muldivreq_rdy_2 (v_muldivreq_rdy_2),
-  .v_muldivreq_rdy_3 (v_muldivreq_rdy_3),
-
-
+  .v_acc_source1 (v_acc_source1),
+  .v_acc_source2 (v_acc_source2),
+  .v_acc_dest (v_acc_dest),
 
     // Control Signals (dpath->ctrl)
     .VLR_temp_Xhl (VLR_temp_Xhl),
@@ -512,19 +514,16 @@ module riscv_Core
 
   .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_0_Mhl),
   .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_0_Mhl),
-  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_1_Mhl),
-  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_1_Mhl),
-  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_2_Mhl),
-  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_2_Mhl),
-  .v_dmemresp_queue_en_0_Mhl (v_dmemresp_queue_en_3_Mhl),
-  .v_dmemresp_queue_val_0_Mhl (v_dmemresp_queue_val_3_Mhl),
+  .v_dmemresp_queue_en_1_Mhl (v_dmemresp_queue_en_1_Mhl),
+  .v_dmemresp_queue_val_1_Mhl (v_dmemresp_queue_val_1_Mhl),
+  .v_dmemresp_queue_en_2_Mhl (v_dmemresp_queue_en_2_Mhl),
+  .v_dmemresp_queue_val_2_Mhl (v_dmemresp_queue_val_2_Mhl),
+  .v_dmemresp_queue_en_3_Mhl (v_dmemresp_queue_en_3_Mhl),
+  .v_dmemresp_queue_val_3_Mhl (v_dmemresp_queue_val_3_Mhl),
 
-  .v_muldivreq_rdy_0 (v_muldivreq_rdy_0),
-  .v_muldivreq_rdy_1 (v_muldivreq_rdy_1),
-  .v_muldivreq_rdy_2 (v_muldivreq_rdy_2),
-  .v_muldivreq_rdy_3 (v_muldivreq_rdy_3),
-
-
+  .v_acc_source1 (v_acc_source1),
+  .v_acc_source2 (v_acc_source2),
+  .v_acc_dest (v_acc_dest),
 
     // Control Signals (dpath->ctrl)
     .VLR_temp_Xhl (VLR_temp_Xhl),
